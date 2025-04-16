@@ -1,0 +1,60 @@
+server:
+  port: 9014
+
+spring:
+  sleuth:
+    sampler:
+      probability: 1.0
+  jpa:
+    hibernate:
+      ddl-auto: none
+  config:
+    import: kafka-dev.yml
+
+datasource:
+  master:
+    url: jdbc:postgresql://172.16.229.217:5432/ulka?currentSchema=skeleton
+    username: ulkaremit
+    password: ulka@123
+    maximum-pool-size: 50
+    minimum-idle: 10
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    pool-name: UserMasterHikariCP
+    validation-timeout: 5000
+    leak-detection-threshold: 60000
+  slave:
+    url: jdbc:postgresql://172.16.229.217:5432/ulka?currentSchema=skeleton
+    username: ulkaremit
+    password: ulka@123
+    maximum-pool-size: 50
+    minimum-idle: 10
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    pool-name: UserSlaveHikariCP
+    validation-timeout: 5000
+    leak-detection-threshold: 60000
+
+redis:
+  host: 172.16.229.128
+  port: 6379
+  password: cblmt@123
+  database:
+    index: 11
+  pool:
+    max:
+      connection: 30
+      idle:
+        connection: 10
+    min:
+      idle:
+        connection: 0
+
+logging:
+  config: classpath:log/logback-dev.xml
+
+services:
+  remittance:
+    base-url: localhost:5089
