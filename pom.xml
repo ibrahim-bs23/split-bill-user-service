@@ -8,11 +8,11 @@
         <version>3.0.1</version>
         <relativePath/>
     </parent>
-    <groupId>com.brainstation23.skeleton</groupId>
-    <artifactId>skeleton-service</artifactId>
+    <groupId>com.brainstation23.spiltbill</groupId>
+    <artifactId>User-service</artifactId>
     <version>1.0</version>
-    <name>Skeleton Service</name>
-    <description>Skeleton Service</description>
+    <name>User Service</name>
+    <description>User Service</description>
     <properties>
         <java.version>17</java.version>
         <spring-cloud.version>2022.0.0</spring-cloud.version>
@@ -34,11 +34,6 @@
         <kafka.lib.version>1.0</kafka.lib.version>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>com.brainstation23.kafka</groupId>
-            <artifactId>ulka-kafka-service</artifactId>
-            <version>${kafka.lib.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.postgresql</groupId>
