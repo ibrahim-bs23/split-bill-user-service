@@ -11,7 +11,7 @@ public class HomeResource extends BaseResource {
 
     @GetMapping
     public String index() {
-        return "Brain Station 23 Ltd. Skeleton service is running...!";
+        return "Brain Station 23 Ltd. User Service is running...!";
     }
 
 }

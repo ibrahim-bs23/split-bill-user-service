@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-04-16T17:24:40+0600",
-    comments = "version: 1.5.3.Final, compiler: javac, environment: Java 17.0.14 (Amazon.com Inc.)"
+    date = "2025-04-17T16:33:45+0600",
+    comments = "version: 1.5.3.Final, compiler: javac, environment: Java 17.0.10 (Oracle Corporation)"
 )
 @Component
 public class ApplicationSettingMapperImpl implements ApplicationSettingMapper {
