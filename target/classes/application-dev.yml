@@ -11,9 +11,9 @@ spring:
 
 datasource:
   master:
-    url: jdbc:postgresql://172.16.229.217:5432/ulka?currentSchema=skeleton
-    username: ulkaremit
-    password: ulka@123
+    url: jdbc:postgresql://10.112.20.58:5432/postgres?currentSchema=user_service
+    username: postgres
+    password: mysecretpassword
     maximum-pool-size: 50
     minimum-idle: 10
     connection-timeout: 30000
@@ -23,9 +23,9 @@ datasource:
     validation-timeout: 5000
     leak-detection-threshold: 60000
   slave:
-    url: jdbc:postgresql://172.16.229.217:5432/ulka?currentSchema=skeleton
-    username: ulkaremit
-    password: ulka@123
+    url: jdbc:postgresql://10.112.20.58:5432/postgres?currentSchema=user_service
+    username: postgres
+    password: mysecretpassword
     maximum-pool-size: 50
     minimum-idle: 10
     connection-timeout: 30000
