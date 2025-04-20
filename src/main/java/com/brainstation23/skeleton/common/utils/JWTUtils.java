@@ -66,7 +66,7 @@ public class JWTUtils {
     }
 
     private static int getExpiryMilli(String expiryTime) {
-        int expMinutes = Integer.valueOf(expiryTime);
+        int expMinutes = Integer.parseInt(expiryTime);
         return DateTimeUtils.convertToMilli(expMinutes, Calendar.MINUTE);
     }
 

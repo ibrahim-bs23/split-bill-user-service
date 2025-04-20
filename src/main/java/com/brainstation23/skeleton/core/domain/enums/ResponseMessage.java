@@ -25,6 +25,11 @@ public enum ResponseMessage {
     RECORD_ALREADY_EXIST("record.already.exist"),
     UNAUTHORIZED_RESOURCE_ACCESS("unauthorized.resource.access"),
     EVENT_PUBLISH_ERROR("event.publish.error"),
+    USER_NAME_ALREADY_EXISTS("user.name.already.exists"),
+    EMAIL_ALREADY_EXISTS("email.already.exists"),
+    UNMATCHED_USERNAME_OR_PASSWORD("unmatched.username.or.password"),
+    INVALID_PASSWORD("invalid.password"),
+    INVALID_USERNAME("invalid.username"),
     ;
     private final String responseMessage;
 }
