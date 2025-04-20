@@ -40,7 +40,9 @@ public class SkeletonServiceExceptionHandler extends BaseExceptionHandler {
             OperationHoldException.class,
             TransactionReverseException.class,
             UnauthorizedResourceException.class,
-            RecordNotFoundException.class})
+            RecordNotFoundException.class,
+            AlreadyExists.class,
+            AuthenticationFailedException.class})
     public ResponseEntity<ApiResponse<Void>> handleCustomException(CustomRootException ex) {
         logger.error(ex.getLocalizedMessage(), ex);
         ApiResponse<Void> apiResponse = ResponseUtils.createApiResponse(ex.getMessageCode(), getMessage(ex.getMessage()));

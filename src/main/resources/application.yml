@@ -63,4 +63,20 @@ spring:
 springdoc:
   paths-to-exclude: /swagger-resources/**, /v3/api-docs/**, /v2/api-docs/**
 
+jwt:
+  token:
+    expiry:
+      minute: 30
+    live:
+      minute: 60
+    prefix: Bearer
+  secret:
+    key: SzdmR3R5eTlOd1NnVzU0QUFiaFhSUk1rNEJtcXd6U3Z5ckgyOHl6M1NqWWF5Ymp4cXZ0RzNyVzc0WldXNHVoZFB2UGVTRVJjeHpWUjd2RHVKelA5emFSSHBCOFQ1cFBydnJwN1ZRVUZEeGtNU20yOHEyY05Wa0U1bmFxcmhld20=
+  id-token:
+    secret:
+      key: Y3k0U0I1Mnd2YkZLY1I0OXB2VW1NN0dyUjNFcWFuQTdxeTJ3Tjh3ejVQUFp4OXFWa2R2V0p5VFN6cHhqckRtTTh0anJXemt0dTdnUXpTdjJicXlQOFZ2bURCclc0YWVBTlJIWXJraEc0U2hwYVZXM2U1eFBYSFJFN1N5ZlJ6dWg=
 
+payload:
+  encryption:
+    secret:
+      key: 3XT3RN@L_P@YL0@D_S3CR3T
