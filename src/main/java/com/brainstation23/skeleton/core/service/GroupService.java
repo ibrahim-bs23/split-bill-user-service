@@ -8,6 +8,7 @@ import com.brainstation23.skeleton.core.domain.request.GroupRequest;
 import com.brainstation23.skeleton.core.domain.response.GroupResponse;
 import com.brainstation23.skeleton.data.entity.Group;
 import com.brainstation23.skeleton.data.entity.GroupMember;
+import com.brainstation23.skeleton.data.entity.user.Users;
 import com.brainstation23.skeleton.data.repository.GroupMemberRepository;
 import com.brainstation23.skeleton.data.repository.GroupRepository;
 import com.brainstation23.skeleton.data.repository.user.UserRepository;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,19 +44,51 @@ public class GroupService extends BaseService {
 
         List<GroupMember> groupMemberList = groupMemberRepository.findByGroupId(group.getGroupId());
 
-        if (groupMemberList.isEmpty()) {
-            GroupMember creator = GroupMember.builder()
-                    .groupId(savedGroup.getGroupId())
-                    .userIdentity("89c47df9-951e-4450-8d65-48ffc5ffad51")
-                    .role(GroupMemberTypeEnum.ADMIN.toString())
-                    .createdAt(getCurrentDate())
-                    .userName("")
-                    .build();
 
-            groupMemberRepository.save(creator);
+        if (groupMemberList.isEmpty()) {
+            final Optional<Users> userOptional = userRepository.findByUserIdentity(getUserIdentity());
+            if (userOptional.isPresent()) {
+                GroupMember creator = GroupMember.builder()
+                        .groupId(savedGroup.getGroupId())
+                        .userIdentity(userOptional.get().getUserIdentity())
+                        .role(GroupMemberTypeEnum.ADMIN.toString())
+                        .createdAt(getCurrentDate())
+                        .userName(userOptional.get().getUsername())
+                        .build();
+                groupMemberRepository.save(creator);
+            }
+
         }
 
         return mapToGroupResponse(savedGroup);
+    }
+
+    public List<Group> fetchUserWiseGroups() {
+        List<GroupMember> groupMemberList
+                = groupMemberRepository.findAllByUserIdentity(getUserIdentity());
+
+        List<String> groupIds = groupMemberList.stream()
+                .map(GroupMember::getGroupId)
+                .collect(Collectors.toList());
+
+        List<Group> userGroups = groupRepository.findAllByGroupIdIn(groupIds);
+
+        return userGroups;
+    }
+
+    public List<GroupMember> fetchUserWiseGroupWithMembers(String groupId) {
+
+        List<GroupMember> groupMemberList
+                = groupMemberRepository.findAllByGroupId(groupId);
+
+        final boolean isUserFound = groupMemberList.stream()
+                .anyMatch(member -> member.getUserIdentity().equals(getUserIdentity()));
+
+        if (isUserFound) {
+            return groupMemberList;
+        } else {
+            throw new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS);
+        }
     }
 
     @Transactional
@@ -65,11 +99,16 @@ public class GroupService extends BaseService {
         Group group = groupRepository.findByGroupId(groupMemberRequest.getGroupId())
                 .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.RECORD_NOT_FOUND));
 
-        if (!group.getCreatedBy().equals("89c47df9-951e-4450-8d65-48ffc5ffad51")) {
-            throw new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS);
-        }
 
         List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(group.getGroupId());
+
+        boolean isEligibleUser = groupMembers.stream()
+                .anyMatch(groupMember -> groupMember.getUserIdentity().equals(getUserIdentity())
+                        && groupMember.getRole().equals(GroupMemberTypeEnum.ADMIN.toString()));
+
+        if (!isEligibleUser) {
+            throw new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS);
+        }
 
         for (String userName : groupMemberRequest.getUsernames()) {
             userRepository.findByUsername(userName)
@@ -84,7 +123,7 @@ public class GroupService extends BaseService {
 
     private void addNewMember(String username, String memberIdentity, List<GroupMember> groupMemberList) {
 
-        if (memberIdentity.equals("89c47df9-951e-4450-8d65-48ffc5ffad51") ||
+        if (memberIdentity.equals(getUserIdentity()) ||
                 groupMemberList.stream().anyMatch(member -> member.getUserName().equals(username))) {
             throw new InvalidRequestDataException(ResponseMessage.RECORD_ALREADY_EXIST);
         }
@@ -114,7 +153,7 @@ public class GroupService extends BaseService {
 
         validateGroupMemberRequest(groupMemberRequest);
 
-        final String currentUserIdentity = "89c47df9-951e-4450-8d65-48ffc5ffad51";
+        final String currentUserIdentity = getUserIdentity();
 
         List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(groupMemberRequest.getGroupId());
 
@@ -153,7 +192,7 @@ public class GroupService extends BaseService {
 
         validateGroupMemberRequest(groupMemberRequest);
 
-        String currentUserIdentity = "89c47df9-951e-4450-8d65-48ffc5ffad51";
+        String currentUserIdentity = getUserIdentity();
 
         List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(groupMemberRequest.getGroupId());
 
@@ -188,21 +227,6 @@ public class GroupService extends BaseService {
 
         groupMember.setRole(GroupMemberTypeEnum.MEMBER.toString());
         return groupMember;
-    }
-
-
-    public Optional<Group> getGroup(String groupId) {
-        if (groupId == null) {
-            throw new IllegalArgumentException("Group ID cannot be null");
-        }
-        return groupRepository.findByGroupId(groupId);
-    }
-
-    public List<GroupMember> getGroupMembers(String groupId) {
-        if (groupId == null) {
-            throw new IllegalArgumentException("Group ID cannot be null");
-        }
-        return groupMemberRepository.findByGroupId(groupId);
     }
 
 

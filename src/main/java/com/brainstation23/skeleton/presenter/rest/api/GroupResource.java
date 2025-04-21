@@ -8,6 +8,7 @@ import com.brainstation23.skeleton.core.domain.request.GroupMemberRequest;
 import com.brainstation23.skeleton.core.domain.request.GroupRequest;
 import com.brainstation23.skeleton.core.domain.response.GroupResponse;
 import com.brainstation23.skeleton.core.service.GroupService;
+import com.brainstation23.skeleton.data.entity.Group;
 import com.brainstation23.skeleton.data.entity.GroupMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +22,24 @@ import java.util.List;
 public class GroupResource extends BaseResource {
 
     private final GroupService groupService;
-    @PostMapping("/create")
+    @PostMapping("/createOrUpdate")
     public ApiResponse<GroupResponse> createGroup(@RequestBody GroupRequest groupRequest) {
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
                 groupService.createGroup(groupRequest)
+        );
+    }
+
+    @GetMapping("/all")
+    public ApiResponse<List<Group>> fetchUserWiseGroups() {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                groupService.fetchUserWiseGroups()
+        );
+    }
+
+    @GetMapping("/all-members/{groupId}")
+    public ApiResponse<List<GroupMember>> fetchUserWiseGroupWithMembers(@PathVariable String groupId) {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                groupService.fetchUserWiseGroupWithMembers(groupId)
         );
     }
 
