@@ -18,7 +18,7 @@ public class UserMapper {
         String profilePhoto = request.getProfilePhoto() != null ? request.getProfilePhoto() : "default-profile-photo.jpg";
         return Users.builder()
                 .username(request.getUsername())
-                .userIdentity(String.valueOf(UUID.randomUUID()))
+                .userIdentity(UUID.randomUUID().toString().replace("-", ""))
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
                 .profilePhoto(profilePhoto)
@@ -31,7 +31,7 @@ public class UserMapper {
     public UserResponseDTO toUserResponseDTO(Users users) {
         return UserResponseDTO.builder()
                 .id(users.getId())
-                .userIdentity(UUID.fromString(users.getUserIdentity()))
+                .userIdentity(users.getUserIdentity())
                 .username(users.getUsername())
                 .email(users.getEmail())
                 .phoneNumber(users.getPhoneNumber())

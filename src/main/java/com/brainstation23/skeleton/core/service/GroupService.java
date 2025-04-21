@@ -279,7 +279,7 @@ public class GroupService extends BaseService {
         group.setName(groupRequest.getName());
         group.setDescription(groupRequest.getDescription());
         group.setCreatedAt(getCurrentDate());
-        group.setCreatedBy("89c47df9-951e-4450-8d65-48ffc5ffad51");
+        group.setCreatedBy(getUserIdentity());
 
         return group;
 
