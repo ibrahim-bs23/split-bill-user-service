@@ -10,6 +10,4 @@ public class GroupRequest {
 
     private String description;
 
-    private String createdBy;
-
 }

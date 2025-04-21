@@ -38,6 +38,11 @@ public class Group {
     @Column(nullable = false, name = "CREATED_AT")
     private Date createdAt;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false, name = "UPDATED_AT")
+    private Date updatedAt;
+
     @Column(name = "is_active")
     private boolean isActive = true;
 }

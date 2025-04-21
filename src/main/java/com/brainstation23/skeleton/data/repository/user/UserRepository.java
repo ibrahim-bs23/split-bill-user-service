@@ -15,4 +15,6 @@ public interface UserRepository extends JpaRepository<Users, Long> {
 
     @Query("SELECT u FROM Users u WHERE u.username LIKE %:usernamePattern%")
     List<Users> findUsersByUsernameLike(@Param("usernamePattern") String usernamePattern, Pageable pageable);
+
+    Optional<Users> findByUserIdentity(String userIdentity);
 }
