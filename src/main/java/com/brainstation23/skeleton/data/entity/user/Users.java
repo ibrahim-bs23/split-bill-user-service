@@ -19,7 +19,7 @@ public class Users {
     private Long id;
 
     @Column(name = "user_identity", nullable = false, unique = true)
-    private UUID userIdentity;
+    private String userIdentity;
 
     @Column(name = "username", nullable = false, length = 100)
     private String username;

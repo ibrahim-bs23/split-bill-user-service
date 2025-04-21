@@ -31,18 +31,28 @@ public class GroupService extends BaseService {
 
         validateGroupRequest(groupRequest);
 
-        final Group newGroup = createNewGroup(groupRequest);
+        Group group = groupRepository.findByName(groupRequest.getName())
+                .orElseGet(() -> createNewGroup(groupRequest));
 
-        Group savedGroup = groupRepository.save(newGroup);
+        group.setName(groupRequest.getName());
+        group.setDescription(groupRequest.getDescription());
+        group.setUpdatedAt(getCurrentDate());
 
-        GroupMember creator = GroupMember.builder()
-                .groupId(newGroup.getGroupId())
-                .userIdentity("89c47df9-951e-4450-8d65-48ffc5ffad51")
-                .role("ADMIN")
-                .createdAt(getCurrentDate())
-                .build();
+        Group savedGroup = groupRepository.save(group);
 
-        groupMemberRepository.save(creator);
+        List<GroupMember> groupMemberList = groupMemberRepository.findByGroupId(group.getGroupId());
+
+        if (groupMemberList.isEmpty()) {
+            GroupMember creator = GroupMember.builder()
+                    .groupId(savedGroup.getGroupId())
+                    .userIdentity("89c47df9-951e-4450-8d65-48ffc5ffad51")
+                    .role(GroupMemberTypeEnum.ADMIN.toString())
+                    .createdAt(getCurrentDate())
+                    .userName("")
+                    .build();
+
+            groupMemberRepository.save(creator);
+        }
 
         return mapToGroupResponse(savedGroup);
     }
@@ -55,7 +65,7 @@ public class GroupService extends BaseService {
         Group group = groupRepository.findByGroupId(groupMemberRequest.getGroupId())
                 .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.RECORD_NOT_FOUND));
 
-        if (!group.getCreatedBy().equals(getUserIdentity())) {
+        if (!group.getCreatedBy().equals("89c47df9-951e-4450-8d65-48ffc5ffad51")) {
             throw new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS);
         }
 
@@ -63,7 +73,7 @@ public class GroupService extends BaseService {
 
         for (String userName : groupMemberRequest.getUsernames()) {
             userRepository.findByUsername(userName)
-                    .ifPresent(user -> addNewMember(userName, user.getUserIdentity().toString(), groupMembers));
+                    .ifPresent(user -> addNewMember(userName, user.getUserIdentity(), groupMembers));
         }
 
         groupMemberRepository.saveAll(groupMembers);
@@ -72,9 +82,9 @@ public class GroupService extends BaseService {
 
     }
 
-    private void addNewMember(String username,String memberIdentity, List<GroupMember> groupMemberList) {
+    private void addNewMember(String username, String memberIdentity, List<GroupMember> groupMemberList) {
 
-        if (memberIdentity.equals(getUserIdentity()) ||
+        if (memberIdentity.equals("89c47df9-951e-4450-8d65-48ffc5ffad51") ||
                 groupMemberList.stream().anyMatch(member -> member.getUserName().equals(username))) {
             throw new InvalidRequestDataException(ResponseMessage.RECORD_ALREADY_EXIST);
         }
@@ -97,6 +107,87 @@ public class GroupService extends BaseService {
             throw new InvalidRequestDataException(ResponseMessage.INVALID_REQUEST_DATA);
         }
 
+    }
+
+    @Transactional
+    public List<GroupMember> makeUserAdmin(GroupMemberRequest groupMemberRequest) {
+
+        validateGroupMemberRequest(groupMemberRequest);
+
+        final String currentUserIdentity = "89c47df9-951e-4450-8d65-48ffc5ffad51";
+
+        List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(groupMemberRequest.getGroupId());
+
+        groupMembers.stream()
+                .filter(member -> member.getUserIdentity().equals(currentUserIdentity)
+                        && GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole())
+                )
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS));
+
+        for (String userName : groupMemberRequest.getUsernames()) {
+            promoteToAdmin(userName, groupMembers);
+        }
+
+        return groupMemberRepository.saveAll(groupMembers);
+    }
+
+    private static GroupMember promoteToAdmin(String username, List<GroupMember> groupMembers) {
+
+        GroupMember groupMember = groupMembers.stream()
+                .filter(member -> member.getUserName().equals(username))
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.USER_NOT_FOUND));
+
+        if (GroupMemberTypeEnum.ADMIN.toString().equals(groupMember.getRole())) {
+            throw new InvalidRequestDataException(ResponseMessage.USER_ALREADY_ADMIN);
+        }
+
+        groupMember.setRole(GroupMemberTypeEnum.ADMIN.toString());
+        return groupMember;
+    }
+
+
+    @Transactional
+    public List<GroupMember> makeUserMember(GroupMemberRequest groupMemberRequest) {
+
+        validateGroupMemberRequest(groupMemberRequest);
+
+        String currentUserIdentity = "89c47df9-951e-4450-8d65-48ffc5ffad51";
+
+        List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(groupMemberRequest.getGroupId());
+
+        groupMembers.stream()
+                .filter(member -> member.getUserIdentity().equals(currentUserIdentity)
+                        && GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole())
+                )
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS));
+
+
+        for (String userName : groupMemberRequest.getUsernames()) {
+            demoteToMember(userName, groupMembers);
+        }
+
+        return groupMemberRepository.saveAll(groupMembers);
+
+    }
+
+    private static GroupMember demoteToMember(String username, List<GroupMember> groupMembers) {
+
+        GroupMember groupMember = groupMembers.stream()
+                .filter(member -> member.getUserName().equals(username) &&
+                        GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole()))
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.USER_NOT_FOUND));
+
+        long adminCount = groupMembers.stream().filter(member -> GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole())).count();
+        if (adminCount <= 1) {
+            throw new InvalidRequestDataException(ResponseMessage.USER_NOT_FOUND);
+        }
+
+        groupMember.setRole(GroupMemberTypeEnum.MEMBER.toString());
+        return groupMember;
     }
 
 
@@ -174,12 +265,6 @@ public class GroupService extends BaseService {
 
         if (Objects.isNull(groupRequest) || StringUtils.isEmpty(groupRequest.getName())) {
             throw new InvalidRequestDataException(ResponseMessage.INVALID_REQUEST_DATA);
-        }
-
-        Optional<Group> groupOptional = groupRepository.findByName(groupRequest.getName());
-
-        if (groupOptional.isPresent()) {
-            throw new InvalidRequestDataException(ResponseMessage.RECORD_ALREADY_EXIST);
         }
 
     }

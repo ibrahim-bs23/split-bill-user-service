@@ -35,5 +35,17 @@ public class GroupResource extends BaseResource {
         );
     }
 
+    @PostMapping("/make-admin")
+    public ApiResponse<List<GroupMember>> makeUserAdmin(@RequestBody GroupMemberRequest groupMemberRequest) {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                groupService.makeUserAdmin(groupMemberRequest)
+        );
+    }
 
+    @PostMapping("/make-member")
+    public ApiResponse<List<GroupMember>> makeUserMember(@RequestBody GroupMemberRequest groupMemberRequest) {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                groupService.makeUserMember(groupMemberRequest)
+        );
+    }
 }
