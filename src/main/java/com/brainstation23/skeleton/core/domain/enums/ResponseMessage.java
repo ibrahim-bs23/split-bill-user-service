@@ -30,6 +30,7 @@ public enum ResponseMessage {
     UNMATCHED_USERNAME_OR_PASSWORD("unmatched.username.or.password"),
     INVALID_PASSWORD("invalid.password"),
     INVALID_USERNAME("invalid.username"),
+    UNAUTHORIZED_CONNECTION_REQUEST("unauthorized.connection.request"),
     ;
     private final String responseMessage;
 }
