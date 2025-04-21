@@ -18,7 +18,7 @@ public class UserMapper {
         String profilePhoto = request.getProfilePhoto() != null ? request.getProfilePhoto() : "default-profile-photo.jpg";
         return Users.builder()
                 .username(request.getUsername())
-                .userIdentity(UUID.randomUUID())
+                .userIdentity(UUID.randomUUID().toString().replace("-", ""))
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
                 .profilePhoto(profilePhoto)

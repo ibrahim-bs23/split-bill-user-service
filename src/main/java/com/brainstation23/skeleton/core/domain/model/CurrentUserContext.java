@@ -10,6 +10,7 @@ import java.util.List;
 @Setter
 public class CurrentUserContext implements Serializable {
     private String userIdentity;
+    private String userName;
     private Integer userType;
     private Integer userLevel;
     private Integer userStatus;
