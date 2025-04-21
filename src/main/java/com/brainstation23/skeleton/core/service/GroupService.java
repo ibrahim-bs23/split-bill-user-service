@@ -1,22 +1,22 @@
 package com.brainstation23.skeleton.core.service;
 
+import com.brainstation23.skeleton.core.domain.enums.GroupMemberTypeEnum;
 import com.brainstation23.skeleton.core.domain.enums.ResponseMessage;
 import com.brainstation23.skeleton.core.domain.exceptions.InvalidRequestDataException;
+import com.brainstation23.skeleton.core.domain.request.GroupMemberRequest;
 import com.brainstation23.skeleton.core.domain.request.GroupRequest;
 import com.brainstation23.skeleton.core.domain.response.GroupResponse;
 import com.brainstation23.skeleton.data.entity.Group;
 import com.brainstation23.skeleton.data.entity.GroupMember;
 import com.brainstation23.skeleton.data.repository.GroupMemberRepository;
 import com.brainstation23.skeleton.data.repository.GroupRepository;
+import com.brainstation23.skeleton.data.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +24,7 @@ public class GroupService extends BaseService {
 
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public GroupResponse createGroup(GroupRequest groupRequest) {
@@ -31,7 +32,6 @@ public class GroupService extends BaseService {
         validateGroupRequest(groupRequest);
 
         final Group newGroup = createNewGroup(groupRequest);
-
 
         Group savedGroup = groupRepository.save(newGroup);
 
@@ -47,7 +47,57 @@ public class GroupService extends BaseService {
         return mapToGroupResponse(savedGroup);
     }
 
+    @Transactional
+    public List<GroupMember> addMemberToGroup(GroupMemberRequest groupMemberRequest) {
 
+        validateGroupMemberRequest(groupMemberRequest);
+
+        Group group = groupRepository.findByGroupId(groupMemberRequest.getGroupId())
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.RECORD_NOT_FOUND));
+
+        if (!group.getCreatedBy().equals(getUserIdentity())) {
+            throw new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS);
+        }
+
+        List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(group.getGroupId());
+
+        for (String userName : groupMemberRequest.getUsernames()) {
+            userRepository.findByUsername(userName)
+                    .ifPresent(user -> addNewMember(userName, user.getUserIdentity().toString(), groupMembers));
+        }
+
+        groupMemberRepository.saveAll(groupMembers);
+
+        return groupMembers;
+
+    }
+
+    private void addNewMember(String username,String memberIdentity, List<GroupMember> groupMemberList) {
+
+        if (memberIdentity.equals(getUserIdentity()) ||
+                groupMemberList.stream().anyMatch(member -> member.getUserName().equals(username))) {
+            throw new InvalidRequestDataException(ResponseMessage.RECORD_ALREADY_EXIST);
+        }
+
+        GroupMember groupMember = GroupMember.builder()
+                .groupId(groupMemberList.get(0).getGroupId())
+                .userName(username)
+                .userIdentity(memberIdentity)
+                .role(GroupMemberTypeEnum.MEMBER.toString())
+                .createdAt(getCurrentDate())
+                .build();
+
+        groupMemberList.add(groupMember);
+    }
+
+    private void validateGroupMemberRequest(GroupMemberRequest groupMemberRequest) {
+
+        if (Objects.isNull(groupMemberRequest) || Objects.isNull(groupMemberRequest.getUsernames())
+                || Objects.isNull(groupMemberRequest.getGroupId())) {
+            throw new InvalidRequestDataException(ResponseMessage.INVALID_REQUEST_DATA);
+        }
+
+    }
 
 
     public Optional<Group> getGroup(String groupId) {
@@ -64,29 +114,6 @@ public class GroupService extends BaseService {
         return groupMemberRepository.findByGroupId(groupId);
     }
 
-//    @Transactional
-//    public GroupMember addMemberToGroup(String groupId, UUID userIdentity, String role) {
-//        if (groupId == null || userIdentity == null) {
-//            throw new IllegalArgumentException("Group ID and User Identity cannot be null");
-//        }
-//
-//        Optional<Group> group = groupRepository.findByGroupId(groupId);
-//        if (group.isPresent()) {
-//            // Ensure that the role is either "ADMIN" or "MEMBER"
-//            if (!role.equals("ADMIN") && !role.equals("MEMBER")) {
-//                throw new IllegalArgumentException("Role must be either 'ADMIN' or 'MEMBER'");
-//            }
-//
-//            GroupMember groupMember = GroupMember.builder()
-//                    .groupId(group.get().getGroupId())
-//                    .userIdentity(userIdentity)
-//                    .role(role)
-//                    .build();
-//            return groupMemberRepository.save(groupMember);
-//        } else {
-//            throw new IllegalArgumentException("Group not found");
-//        }
-//    }
 
     @Transactional
     public void removeMemberFromGroup(String groupId, UUID userIdentity) {
@@ -151,8 +178,7 @@ public class GroupService extends BaseService {
 
         Optional<Group> groupOptional = groupRepository.findByName(groupRequest.getName());
 
-        if(groupOptional.isPresent())
-        {
+        if (groupOptional.isPresent()) {
             throw new InvalidRequestDataException(ResponseMessage.RECORD_ALREADY_EXIST);
         }
 

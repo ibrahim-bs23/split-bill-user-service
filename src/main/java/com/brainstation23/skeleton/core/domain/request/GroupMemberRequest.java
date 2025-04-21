@@ -2,12 +2,12 @@ package com.brainstation23.skeleton.core.domain.request;
 
 import lombok.Data;
 
-import java.util.UUID;
+import java.util.List;
 
 @Data
 public class GroupMemberRequest {
 
-    private UUID userIdentity;
-    private String role;
+    private List<String> usernames;
+    private String groupId;
 
 }

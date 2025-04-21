@@ -24,6 +24,9 @@ public class GroupMember {
     @NotNull(message = "Group cannot be null")
     private String groupId;
 
+    @Column(name = "username")
+    private String userName;
+
     @NotNull(message = "User ID cannot be null")
     @Column(name = "user_identity", nullable = false)
     private String userIdentity;
