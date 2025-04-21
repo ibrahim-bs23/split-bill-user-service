@@ -31,6 +31,8 @@ public enum ResponseMessage {
     INVALID_PASSWORD("invalid.password"),
     INVALID_USERNAME("invalid.username"),
     UNAUTHORIZED_CONNECTION_REQUEST("unauthorized.connection.request"),
+    USER_NOT_FOUND("user.not.found"),
+    USER_ALREADY_ADMIN("user.already.admin"),
     ;
     private final String responseMessage;
 }

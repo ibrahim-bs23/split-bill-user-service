@@ -1,22 +1,24 @@
 package com.brainstation23.skeleton.core.service;
 
+import com.brainstation23.skeleton.core.domain.enums.GroupMemberTypeEnum;
 import com.brainstation23.skeleton.core.domain.enums.ResponseMessage;
 import com.brainstation23.skeleton.core.domain.exceptions.InvalidRequestDataException;
+import com.brainstation23.skeleton.core.domain.request.GroupMemberRequest;
 import com.brainstation23.skeleton.core.domain.request.GroupRequest;
 import com.brainstation23.skeleton.core.domain.response.GroupResponse;
 import com.brainstation23.skeleton.data.entity.Group;
 import com.brainstation23.skeleton.data.entity.GroupMember;
+import com.brainstation23.skeleton.data.entity.user.Users;
 import com.brainstation23.skeleton.data.repository.GroupMemberRepository;
 import com.brainstation23.skeleton.data.repository.GroupRepository;
+import com.brainstation23.skeleton.data.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,69 +26,209 @@ public class GroupService extends BaseService {
 
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public GroupResponse createGroup(GroupRequest groupRequest) {
 
         validateGroupRequest(groupRequest);
 
-        final Group newGroup = createNewGroup(groupRequest);
+        Group group = groupRepository.findByName(groupRequest.getName())
+                .orElseGet(() -> createNewGroup(groupRequest));
+
+        group.setName(groupRequest.getName());
+        group.setDescription(groupRequest.getDescription());
+        group.setUpdatedAt(getCurrentDate());
+
+        Group savedGroup = groupRepository.save(group);
+
+        List<GroupMember> groupMemberList = groupMemberRepository.findByGroupId(group.getGroupId());
 
 
-        Group savedGroup = groupRepository.save(newGroup);
+        if (groupMemberList.isEmpty()) {
+            final Optional<Users> userOptional = userRepository.findByUserIdentity(getUserIdentity());
+            if (userOptional.isPresent()) {
+                GroupMember creator = GroupMember.builder()
+                        .groupId(savedGroup.getGroupId())
+                        .userIdentity(userOptional.get().getUserIdentity())
+                        .role(GroupMemberTypeEnum.ADMIN.toString())
+                        .createdAt(getCurrentDate())
+                        .userName(userOptional.get().getUsername())
+                        .build();
+                groupMemberRepository.save(creator);
+            }
 
-        GroupMember creator = GroupMember.builder()
-                .groupId(newGroup.getGroupId())
-                .userIdentity("89c47df9-951e-4450-8d65-48ffc5ffad51")
-                .role("ADMIN")
-                .createdAt(getCurrentDate())
-                .build();
-
-        groupMemberRepository.save(creator);
+        }
 
         return mapToGroupResponse(savedGroup);
     }
 
+    public List<Group> fetchUserWiseGroups() {
+        List<GroupMember> groupMemberList
+                = groupMemberRepository.findAllByUserIdentity(getUserIdentity());
 
+        List<String> groupIds = groupMemberList.stream()
+                .map(GroupMember::getGroupId)
+                .collect(Collectors.toList());
 
+        List<Group> userGroups = groupRepository.findAllByGroupIdIn(groupIds);
 
-    public Optional<Group> getGroup(String groupId) {
-        if (groupId == null) {
-            throw new IllegalArgumentException("Group ID cannot be null");
-        }
-        return groupRepository.findByGroupId(groupId);
+        return userGroups;
     }
 
-    public List<GroupMember> getGroupMembers(String groupId) {
-        if (groupId == null) {
-            throw new IllegalArgumentException("Group ID cannot be null");
+    public List<GroupMember> fetchUserWiseGroupWithMembers(String groupId) {
+
+        List<GroupMember> groupMemberList
+                = groupMemberRepository.findAllByGroupId(groupId);
+
+        final boolean isUserFound = groupMemberList.stream()
+                .anyMatch(member -> member.getUserIdentity().equals(getUserIdentity()));
+
+        if (isUserFound) {
+            return groupMemberList;
+        } else {
+            throw new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS);
         }
-        return groupMemberRepository.findByGroupId(groupId);
     }
 
-//    @Transactional
-//    public GroupMember addMemberToGroup(String groupId, UUID userIdentity, String role) {
-//        if (groupId == null || userIdentity == null) {
-//            throw new IllegalArgumentException("Group ID and User Identity cannot be null");
-//        }
-//
-//        Optional<Group> group = groupRepository.findByGroupId(groupId);
-//        if (group.isPresent()) {
-//            // Ensure that the role is either "ADMIN" or "MEMBER"
-//            if (!role.equals("ADMIN") && !role.equals("MEMBER")) {
-//                throw new IllegalArgumentException("Role must be either 'ADMIN' or 'MEMBER'");
-//            }
-//
-//            GroupMember groupMember = GroupMember.builder()
-//                    .groupId(group.get().getGroupId())
-//                    .userIdentity(userIdentity)
-//                    .role(role)
-//                    .build();
-//            return groupMemberRepository.save(groupMember);
-//        } else {
-//            throw new IllegalArgumentException("Group not found");
-//        }
-//    }
+    @Transactional
+    public List<GroupMember> addMemberToGroup(GroupMemberRequest groupMemberRequest) {
+
+        validateGroupMemberRequest(groupMemberRequest);
+
+        Group group = groupRepository.findByGroupId(groupMemberRequest.getGroupId())
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.RECORD_NOT_FOUND));
+
+
+        List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(group.getGroupId());
+
+        boolean isEligibleUser = groupMembers.stream()
+                .anyMatch(groupMember -> groupMember.getUserIdentity().equals(getUserIdentity())
+                        && groupMember.getRole().equals(GroupMemberTypeEnum.ADMIN.toString()));
+
+        if (!isEligibleUser) {
+            throw new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS);
+        }
+
+        for (String userName : groupMemberRequest.getUsernames()) {
+            userRepository.findByUsername(userName)
+                    .ifPresent(user -> addNewMember(userName, user.getUserIdentity(), groupMembers));
+        }
+
+        groupMemberRepository.saveAll(groupMembers);
+
+        return groupMembers;
+
+    }
+
+    private void addNewMember(String username, String memberIdentity, List<GroupMember> groupMemberList) {
+
+        if (memberIdentity.equals(getUserIdentity()) ||
+                groupMemberList.stream().anyMatch(member -> member.getUserName().equals(username))) {
+            throw new InvalidRequestDataException(ResponseMessage.RECORD_ALREADY_EXIST);
+        }
+
+        GroupMember groupMember = GroupMember.builder()
+                .groupId(groupMemberList.get(0).getGroupId())
+                .userName(username)
+                .userIdentity(memberIdentity)
+                .role(GroupMemberTypeEnum.MEMBER.toString())
+                .createdAt(getCurrentDate())
+                .build();
+
+        groupMemberList.add(groupMember);
+    }
+
+    private void validateGroupMemberRequest(GroupMemberRequest groupMemberRequest) {
+
+        if (Objects.isNull(groupMemberRequest) || Objects.isNull(groupMemberRequest.getUsernames())
+                || Objects.isNull(groupMemberRequest.getGroupId())) {
+            throw new InvalidRequestDataException(ResponseMessage.INVALID_REQUEST_DATA);
+        }
+
+    }
+
+    @Transactional
+    public List<GroupMember> makeUserAdmin(GroupMemberRequest groupMemberRequest) {
+
+        validateGroupMemberRequest(groupMemberRequest);
+
+        final String currentUserIdentity = getUserIdentity();
+
+        List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(groupMemberRequest.getGroupId());
+
+        groupMembers.stream()
+                .filter(member -> member.getUserIdentity().equals(currentUserIdentity)
+                        && GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole())
+                )
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS));
+
+        for (String userName : groupMemberRequest.getUsernames()) {
+            promoteToAdmin(userName, groupMembers);
+        }
+
+        return groupMemberRepository.saveAll(groupMembers);
+    }
+
+    private static GroupMember promoteToAdmin(String username, List<GroupMember> groupMembers) {
+
+        GroupMember groupMember = groupMembers.stream()
+                .filter(member -> member.getUserName().equals(username))
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.USER_NOT_FOUND));
+
+        if (GroupMemberTypeEnum.ADMIN.toString().equals(groupMember.getRole())) {
+            throw new InvalidRequestDataException(ResponseMessage.USER_ALREADY_ADMIN);
+        }
+
+        groupMember.setRole(GroupMemberTypeEnum.ADMIN.toString());
+        return groupMember;
+    }
+
+
+    @Transactional
+    public List<GroupMember> makeUserMember(GroupMemberRequest groupMemberRequest) {
+
+        validateGroupMemberRequest(groupMemberRequest);
+
+        String currentUserIdentity = getUserIdentity();
+
+        List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(groupMemberRequest.getGroupId());
+
+        groupMembers.stream()
+                .filter(member -> member.getUserIdentity().equals(currentUserIdentity)
+                        && GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole())
+                )
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS));
+
+
+        for (String userName : groupMemberRequest.getUsernames()) {
+            demoteToMember(userName, groupMembers);
+        }
+
+        return groupMemberRepository.saveAll(groupMembers);
+
+    }
+
+    private static GroupMember demoteToMember(String username, List<GroupMember> groupMembers) {
+
+        GroupMember groupMember = groupMembers.stream()
+                .filter(member -> member.getUserName().equals(username) &&
+                        GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole()))
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.USER_NOT_FOUND));
+
+        long adminCount = groupMembers.stream().filter(member -> GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole())).count();
+        if (adminCount <= 1) {
+            throw new InvalidRequestDataException(ResponseMessage.USER_NOT_FOUND);
+        }
+
+        groupMember.setRole(GroupMemberTypeEnum.MEMBER.toString());
+        return groupMember;
+    }
+
 
     @Transactional
     public void removeMemberFromGroup(String groupId, UUID userIdentity) {
@@ -147,13 +289,6 @@ public class GroupService extends BaseService {
 
         if (Objects.isNull(groupRequest) || StringUtils.isEmpty(groupRequest.getName())) {
             throw new InvalidRequestDataException(ResponseMessage.INVALID_REQUEST_DATA);
-        }
-
-        Optional<Group> groupOptional = groupRepository.findByName(groupRequest.getName());
-
-        if(groupOptional.isPresent())
-        {
-            throw new InvalidRequestDataException(ResponseMessage.RECORD_ALREADY_EXIST);
         }
 
     }
