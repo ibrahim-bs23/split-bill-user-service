@@ -11,7 +11,6 @@ import com.brainstation23.skeleton.core.service.GroupService;
 import com.brainstation23.skeleton.data.entity.Group;
 import com.brainstation23.skeleton.data.entity.GroupMember;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -63,4 +62,26 @@ public class GroupResource extends BaseResource {
                 groupService.makeUserMember(groupMemberRequest)
         );
     }
+
+    @DeleteMapping("/remove-member")
+    public ApiResponse<List<GroupMember>> removeMember(@RequestBody GroupMemberRequest groupMemberRequest) {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                groupService.removeMemberFromGroup(groupMemberRequest)
+        );
+    }
+
+    @PostMapping("/leave-group/{groupId}")
+    public ApiResponse<String> leaveGroup(@PathVariable String groupId) {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                groupService.leaveGroup(groupId)
+        );
+    }
+
+    @DeleteMapping("/remove-group/{groupId}")
+    public ApiResponse<String> removeGroup(@PathVariable String groupId) {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                groupService.deleteGroup(groupId)
+        );
+    }
+
 }
