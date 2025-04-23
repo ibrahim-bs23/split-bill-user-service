@@ -19,7 +19,7 @@ public class EventExpenseInvoice {
     private Long id;
 
     @Column(nullable = false)
-    private String eventId;
+    private Long individualExpenseId;
 
     @Column(nullable = false)
     private Double amount;

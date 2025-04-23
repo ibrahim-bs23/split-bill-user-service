@@ -6,6 +6,8 @@ import com.brainstation23.skeleton.core.domain.exceptions.RecordNotFoundExceptio
 import com.brainstation23.skeleton.core.domain.request.ExpenseDetailsRequest;
 import com.brainstation23.skeleton.core.domain.request.IndividualExpenseRequest;
 import com.brainstation23.skeleton.core.domain.request.UpdateExpenseRequest;
+import com.brainstation23.skeleton.core.domain.request.UpdateIndividualExpense;
+import com.brainstation23.skeleton.core.domain.response.IndividualExpenseResponse;
 import com.brainstation23.skeleton.core.service.BaseService;
 import com.brainstation23.skeleton.core.service.ExpenseManagentService;
 import com.brainstation23.skeleton.data.entity.expense.IndividualEventExpense;
@@ -16,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,12 +42,80 @@ public class ExpenseManagementServiceImpl extends BaseService implements Expense
     public void updateIndividualExpense(UpdateExpenseRequest request) {
         IndividualEventExpense individualEventExpense = validateUpdateRequest(request);
         logger.trace("Update individual expense request received: "+ request.toString());
-        individualEventExpense.setSpentAmount(request.getSpentAmount());
+        double totalSpentAmount = request.getSpentAmount()+individualEventExpense.getSpentAmount();
+        individualEventExpense.setSpentAmount(totalSpentAmount);
         individualEventExpenseRepository.save(individualEventExpense);
 
         //TODO: Update the expense in the event
     }
 
+    @Override
+    public void updateIndividualPaymentStatus(UpdateIndividualExpense request) {
+        IndividualEventExpense individualEventExpense=findIndividualExpense(request);
+        individualEventExpense.setPaymentStatus("COMPLETED");
+        individualEventExpenseRepository.save(individualEventExpense);
+    }
+
+    @Override
+    public void updateEditableOption(UpdateIndividualExpense request) {
+        IndividualEventExpense individualEventExpense=findIndividualExpense(request);
+        individualEventExpense.setIsEditable(Boolean.FALSE);
+        individualEventExpenseRepository.save(individualEventExpense);
+    }
+
+    @Override
+    public IndividualExpenseResponse getIndividualExpense(String eventId) {
+        UpdateIndividualExpense request=buildUpdateIndividualExpense(eventId);
+        IndividualEventExpense individualEventExpense=findIndividualExpense(request);
+        return mapToIndividualExpenseResponse(individualEventExpense);
+    }
+
+    private UpdateIndividualExpense buildUpdateIndividualExpense(String eventId) {
+        return UpdateIndividualExpense.builder()
+                .eventId(eventId)
+                .build();
+    }
+
+    @Override
+    public List<IndividualExpenseResponse> getEventExpenseInvoices(String eventId) {
+        List<IndividualEventExpense> individualEventExpenses = getAllIndividualExpenseForEvent(eventId);
+        return individualEventExpenses.stream()
+                .map(this::mapToIndividualExpenseResponse)
+                .collect(Collectors.toList());
+    }
+
+    private List<IndividualEventExpense> getAllIndividualExpenseForEvent(String eventId) {
+        if(StringUtils.isBlank(eventId)){
+            throw new InvalidRequestDataException(ResponseMessage.INVALID_REQUEST_DATA);
+        }
+        return individualEventExpenseRepository.findAllByEventId(eventId);
+    }
+
+    private IndividualExpenseResponse mapToIndividualExpenseResponse(IndividualEventExpense individualEventExpense) {
+        return IndividualExpenseResponse.builder()
+                .userName(individualEventExpense.getUserName())
+                .userIdentity(individualEventExpense.getUserIdentity())
+                .currency(individualEventExpense.getCurrency())
+                .paymentStatus(individualEventExpense.getPaymentStatus())
+                .budgetAmount(individualEventExpense.getBudgetAmount())
+                .dueAmount(individualEventExpense.getDueAmount())
+                .outstandingBalance(individualEventExpense.getOutstandingBalance())
+                .spentAmount(individualEventExpense.getSpentAmount())
+                .build();
+    }
+
+    private IndividualEventExpense findIndividualExpense(UpdateIndividualExpense request) {
+        validateEventId(request);
+        return individualEventExpenseRepository.findByEventIdAndUserName(request.getEventId(),getCurrentUserContext().getUserName()).orElseThrow(
+                () -> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)
+        );
+    }
+
+    private void validateEventId(UpdateIndividualExpense request) {
+        if(StringUtils.isBlank(request.getEventId())){
+            throw new InvalidRequestDataException(ResponseMessage.INVALID_REQUEST_DATA);
+        }
+    }
 
 
     private IndividualEventExpense validateUpdateRequest(UpdateExpenseRequest request) {
@@ -60,7 +132,7 @@ public class ExpenseManagementServiceImpl extends BaseService implements Expense
     private IndividualEventExpense createIndividualExpenseObject(IndividualExpenseRequest request) {
         return IndividualEventExpense.builder()
                 .eventId(request.getEventId())
-                .currency("TK")
+                .currency("BDT")
                 .spentAmount(0.00)
                 .outstandingBalance(0.00)
                 .dueAmount(0.00)
