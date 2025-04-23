@@ -12,10 +12,14 @@ import java.util.UUID;
 public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
     List<GroupMember> findByGroupId(String groupId);
     List<GroupMember> findByUserIdentity(String userIdentity);
-    void deleteByGroupIdAndUserIdentity(String groupId, UUID userIdentity);
+    void deleteByGroupIdAndUserIdentity(String groupId, String userIdentity);
     long countByGroupIdAndRole(String groupId, String role);
 
     List<GroupMember> findAllByUserIdentity(String userIdentity);
 
     List<GroupMember> findAllByGroupId(String uuid);
+
+    Optional<GroupMember> findByGroupIdAndUserIdentity(String groupId, String userIdentity);
+
+    void deleteAllByGroupId(String groupId);
 }

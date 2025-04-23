@@ -33,7 +33,7 @@ public class GroupService extends BaseService {
 
         validateGroupRequest(groupRequest);
 
-        Group group = groupRepository.findByName(groupRequest.getName())
+        Group group = groupRepository.findByGroupId(groupRequest.getGroupId())
                 .orElseGet(() -> createNewGroup(groupRequest));
 
         group.setName(groupRequest.getName());
@@ -222,7 +222,7 @@ public class GroupService extends BaseService {
 
         long adminCount = groupMembers.stream().filter(member -> GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole())).count();
         if (adminCount <= 1) {
-            throw new InvalidRequestDataException(ResponseMessage.USER_NOT_FOUND);
+            throw new InvalidRequestDataException(ResponseMessage.MINIMUM_ONE_ADMIN_REQUIRED);
         }
 
         groupMember.setRole(GroupMemberTypeEnum.MEMBER.toString());
@@ -231,43 +231,93 @@ public class GroupService extends BaseService {
 
 
     @Transactional
-    public void removeMemberFromGroup(String groupId, UUID userIdentity) {
-        if (groupId == null || userIdentity == null) {
-            throw new IllegalArgumentException("Group ID and User Identity cannot be null");
+    public List<GroupMember> removeMemberFromGroup(GroupMemberRequest groupMemberRequest) {
+
+        validateGroupMemberRequest(groupMemberRequest);
+
+        List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(groupMemberRequest.getGroupId());
+
+        String currentUserIdentity = getUserIdentity();
+
+        groupMembers.stream()
+                .filter(member -> member.getUserIdentity().equals(currentUserIdentity)
+                        && GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole())
+                )
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS));
+
+        for (String userName : groupMemberRequest.getUsernames()) {
+            removeMember(userName, groupMembers);
         }
 
-        // Ensure that there is always at least one admin before removing an admin
-        long adminCount = groupMemberRepository.countByGroupIdAndRole(groupId, "ADMIN");
-        if (adminCount <= 1) {
-            throw new IllegalArgumentException("Cannot remove the last admin from the group");
-        }
+        return groupMemberRepository.saveAll(groupMembers);
 
-        groupMemberRepository.deleteByGroupIdAndUserIdentity(groupId, userIdentity);
     }
 
-//    @Transactional
-//    public void deleteGroup(String groupId) {
-//        if (groupId == null) {
-//            throw new IllegalArgumentException("Group ID cannot be null");
-//        }
-//
-//        groupMemberRepository.deleteByGroupId(groupId);  // Clean up group members first
-//        groupRepository.deleteById(groupId);  // Then delete the group itself
-//    }
+    private void removeMember(String userName, List<GroupMember> groupMembers) {
+
+        GroupMember groupMember = groupMembers.stream()
+                .filter(member -> member.getUserName().equals(userName))
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.USER_NOT_FOUND));
+
+        if (groupMember.getRole().equals(GroupMemberTypeEnum.ADMIN.toString())) {
+            long adminCount
+                    = groupMembers.stream()
+                    .filter(member -> GroupMemberTypeEnum.ADMIN.toString()
+                            .equals(member.getRole())).count() - 1;
+            if (adminCount < 1) {
+                throw new InvalidRequestDataException(ResponseMessage.MINIMUM_ONE_ADMIN_REQUIRED);
+            }
+        }
+
+        groupMemberRepository.delete(groupMember);
+        groupMembers.remove(groupMember);
+
+    }
 
     @Transactional
-    public void leaveGroup(String groupId, UUID userIdentity) {
-        if (groupId == null || userIdentity == null) {
-            throw new IllegalArgumentException("Group ID and User Identity cannot be null");
-        }
+    public String deleteGroup(String groupId) {
 
-        // Ensure that there is always at least one admin
-        long adminCount = groupMemberRepository.countByGroupIdAndRole(groupId, "ADMIN");
+        List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(groupId);
+
+        String currentUserIdentity = "89c47df9-951e-4450-8d65-48ffc5ffad51";
+
+        groupMembers.stream()
+                .filter(member -> member.getUserIdentity().equals(currentUserIdentity)
+                        && GroupMemberTypeEnum.ADMIN.toString().equals(member.getRole())
+                )
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS));
+
+        groupMemberRepository.deleteAllByGroupId(groupId);
+
+        final Group group = groupRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.RECORD_NOT_FOUND));
+
+        group.setActive(false);
+
+        groupRepository.save(group);
+
+        return ResponseMessage.OPERATION_SUCCESSFUL.getResponseMessage();
+    }
+
+    @Transactional
+    public String leaveGroup(String groupId) {
+
+        String userIdentity = getUserIdentity();
+
+        final GroupMember groupMember = groupMemberRepository.findByGroupIdAndUserIdentity(groupId, userIdentity)
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.USER_NOT_FOUND));
+
+        long adminCount = groupMemberRepository.countByGroupIdAndRole(groupId, GroupMemberTypeEnum.ADMIN.toString());
         if (adminCount <= 1 && isAdmin(userIdentity, groupId)) {
-            throw new IllegalArgumentException("Cannot leave the group if you are the last admin");
+            throw new InvalidRequestDataException(ResponseMessage.MINIMUM_ONE_ADMIN_REQUIRED);
         }
 
-        groupMemberRepository.deleteByGroupIdAndUserIdentity(groupId, userIdentity);
+        groupMemberRepository.delete(groupMember);
+
+        return ResponseMessage.OPERATION_SUCCESSFUL.getResponseMessage();
     }
 
     private Group createNewGroup(GroupRequest groupRequest) {
@@ -279,7 +329,7 @@ public class GroupService extends BaseService {
         group.setName(groupRequest.getName());
         group.setDescription(groupRequest.getDescription());
         group.setCreatedAt(getCurrentDate());
-        group.setCreatedBy("89c47df9-951e-4450-8d65-48ffc5ffad51");
+        group.setCreatedBy(getUserIdentity());
 
         return group;
 
@@ -304,11 +354,10 @@ public class GroupService extends BaseService {
                 .build();
     }
 
-    private boolean isAdmin(UUID userIdentity, String groupId) {
-//        return groupMemberRepository.findByGroupIdAndUserIdentity(groupId, userIdentity)
-//                .map(groupMember -> "ADMIN".equals(groupMember.getRole()))
-//                .orElse(false);
+    private boolean isAdmin(String userIdentity, String groupId) {
 
-        return true;
+        return groupMemberRepository.findByGroupIdAndUserIdentity(groupId, userIdentity)
+                .map(groupMember -> GroupMemberTypeEnum.ADMIN.toString().equals(groupMember.getRole()))
+                .orElse(false);
     }
 }
