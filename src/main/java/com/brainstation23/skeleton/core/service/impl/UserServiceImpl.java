@@ -160,6 +160,10 @@ public class UserServiceImpl extends BaseService implements UserService {
         connectionRepository.findByUserNameAndConnectedUserAndConnectionStatusIn(senderUserName, receiverId,List.of(ConnectionStatus.PENDING, ConnectionStatus.CONNECTED)).ifPresent(
                 connection -> { throw new InvalidRequestDataException(ResponseMessage.INVALID_REQUEST_DATA); }
         );
+        //bidirectional connection
+        connectionRepository.findByUserNameAndConnectedUserAndConnectionStatusIn(receiverId, senderUserName,List.of(ConnectionStatus.PENDING, ConnectionStatus.CONNECTED)).ifPresent(
+                connection -> { throw new InvalidRequestDataException(ResponseMessage.INVALID_REQUEST_DATA); }
+        );
     }
 
     private void validateSelfConnection(String receiverId) {
