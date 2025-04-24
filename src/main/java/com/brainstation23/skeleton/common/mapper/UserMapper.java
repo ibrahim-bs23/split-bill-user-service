@@ -22,7 +22,7 @@ public class UserMapper {
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
                 .profilePhoto(profilePhoto)
-                .isActive(true)
+                .isActive(false)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

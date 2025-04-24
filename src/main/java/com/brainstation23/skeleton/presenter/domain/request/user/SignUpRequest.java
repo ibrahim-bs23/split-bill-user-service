@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 @Setter
 @Getter
@@ -23,6 +24,7 @@ public class SignUpRequest {
     private String phoneNumber;
 
     @NotBlank(message = "Password is required")
+    @Length(min = 8, max = 20)
     private String password;
 
     private String profilePhoto;

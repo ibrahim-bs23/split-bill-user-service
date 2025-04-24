@@ -32,6 +32,10 @@ public class RandomGenerator {
         return generatePassword(10);
     }
 
+    public String generateVerificationCode(){
+        return generatePassword(6);
+    }
+
     public String generatePassword(int length) {
         String combinedCharacters = UPPERCASE_CHARACTERS + LOWERCASE_CHARACTERS + SPECIAL_CHARACTERS + NUMBERS;
         Random random = new Random();

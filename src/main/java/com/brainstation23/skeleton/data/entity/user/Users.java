@@ -45,4 +45,6 @@ public class Users {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @Column(name = "verification_code", length = 6, nullable = false)
+    private String verificationCode;
 }

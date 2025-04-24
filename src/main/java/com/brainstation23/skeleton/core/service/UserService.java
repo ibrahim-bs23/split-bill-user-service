@@ -1,5 +1,6 @@
 package com.brainstation23.skeleton.core.service;
 
+import com.brainstation23.skeleton.core.domain.request.ValidateUserEmail;
 import com.brainstation23.skeleton.presenter.domain.request.auth.AuthenticationRequest;
 import com.brainstation23.skeleton.presenter.domain.request.user.ConnectionUpdate;
 import com.brainstation23.skeleton.presenter.domain.request.user.SignUpRequest;
@@ -24,4 +25,6 @@ public interface UserService {
     void unfriendUser(String receiverName);
 
     List<String> getUserFriends();
+
+    void validateUser(ValidateUserEmail verificationCode);
 }
