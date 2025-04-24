@@ -33,7 +33,8 @@ public enum ResponseMessage {
     UNAUTHORIZED_CONNECTION_REQUEST("unauthorized.connection.request"),
     USER_NOT_FOUND("user.not.found"),
     USER_ALREADY_ADMIN("user.already.admin"),
-    MINIMUM_ONE_ADMIN_REQUIRED("minimum.one.admin.required")
+    MINIMUM_ONE_ADMIN_REQUIRED("minimum.one.admin.required"),
+    VERIFICATION_FAILED("verification.failed")
     ;
     private final String responseMessage;
 }
