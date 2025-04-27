@@ -59,6 +59,17 @@ spring:
         all-namespaces: false
         namespaces:
           - skeleton
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: shahinbeg80@gmail.com
+    password: zstnslhqoiprmdmh
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 springdoc:
   paths-to-exclude: /swagger-resources/**, /v3/api-docs/**, /v2/api-docs/**
