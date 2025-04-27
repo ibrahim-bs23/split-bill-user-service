@@ -12,5 +12,4 @@ public class GroupEventRequest {
     private String eventName;
     private String description;
     private Date eventDate;
-    private String createdBy;
 }

@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
@@ -21,7 +20,7 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
 
     Optional<GroupMember> findByGroupIdAndUserIdentity(String groupId, String userIdentity);
 
-    Optional<GroupMember> findByGroupIdAndUsername(String groupId, String username);
+    Optional<GroupMember> findByGroupIdAndUserName(String groupId, String username);
 
     void deleteAllByGroupId(String groupId);
 }

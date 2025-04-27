@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -81,7 +82,7 @@ public class GroupEventService extends BaseService {
         newEvent.setUsername(groupMember.getUserName());
         newEvent.setEventName(eventRequest.getEventName());
         newEvent.setDescription(eventRequest.getDescription());
-        newEvent.setCreatedBy(getUserIdentity());
+        newEvent.setCreatedBy(groupMember.getUserIdentity());
         newEvent.setCreatedAt(getCurrentDate());
         newEvent.setEventDate(eventRequest.getEventDate());
         newEvent.setTotalSpending(BigDecimal.ZERO);
@@ -90,7 +91,7 @@ public class GroupEventService extends BaseService {
     }
 
     @Transactional
-    public GroupEvent addMemberToEvent(String eventId, List<String> usernames) {
+    public String addMemberToEvent(String eventId, List<String> usernames) {
 
         GroupEvent groupEvent = groupEventRepository.findFirstByEventId(eventId)
                 .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.EVENT_NOT_FOUND));
@@ -101,16 +102,23 @@ public class GroupEventService extends BaseService {
 
         for (String username : usernames) {
             addUserToEvent(groupEvent, username);
-            expenseManagentService.createIndividualExpense(buildIndividualExpenseRequest(groupEvent));
         }
 
-        return groupEvent;
+        return ResponseMessage.OPERATION_SUCCESSFUL.getResponseMessage();
     }
 
     private void addUserToEvent(GroupEvent groupEvent, String username) {
 
-        GroupMember groupMember = groupMemberRepository.findByGroupIdAndUsername(groupEvent.getGroupId(), username)
+        GroupMember groupMember = groupMemberRepository.findByGroupIdAndUserName(groupEvent.getGroupId(), username)
                 .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.GROUP_NOT_FOUND));
+
+        Optional<GroupEvent> groupEventOptional
+                = groupEventRepository.findByEventIdAndUsername(groupEvent.getEventId(), username);
+
+        if(groupEventOptional.isPresent())
+        {
+            throw new InvalidRequestDataException(ResponseMessage.USER_NAME_ALREADY_EXISTS);
+        }
 
         GroupEvent participantEvent = GroupEvent.builder()
                 .eventId(groupEvent.getEventId())
@@ -126,6 +134,7 @@ public class GroupEventService extends BaseService {
                 .username(username)
                 .build();
 
+        expenseManagentService.createIndividualExpense(buildIndividualExpenseRequest(participantEvent));
         groupEventRepository.save(participantEvent);
 
     }
@@ -138,7 +147,7 @@ public class GroupEventService extends BaseService {
 
         String currentUserIdentity = getUserIdentity();
 
-        validateEventUser(groupEvent.getGroupId(), currentUserIdentity);
+        validateEventUser(groupEvent.getEventId(), currentUserIdentity);
 
         for (String username : usernames) {
             removeParticipantFromEvent(groupEvent, username);

@@ -28,7 +28,7 @@ public class EventResource extends BaseResource {
     }
 
     @PostMapping("/{eventId}/add-members")
-    public ApiResponse<GroupEvent> addParticipantsToEvent(@PathVariable String eventId, @RequestBody List<String> usernames) {
+    public ApiResponse<String> addParticipantsToEvent(@PathVariable String eventId, @RequestBody List<String> usernames) {
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
                 groupEventService.addMemberToEvent(eventId, usernames)
         );
@@ -42,7 +42,7 @@ public class EventResource extends BaseResource {
     }
 
     @DeleteMapping("/{eventId}")
-    public ApiResponse<String> removeParticipantsFromEvent(@PathVariable String eventId) {
+    public ApiResponse<String> deleteEvent(@PathVariable String eventId) {
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
                 groupEventService.deleteEvent(eventId)
         );
