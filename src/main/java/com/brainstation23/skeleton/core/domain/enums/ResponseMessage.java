@@ -34,7 +34,8 @@ public enum ResponseMessage {
     USER_NOT_FOUND("user.not.found"),
     USER_ALREADY_ADMIN("user.already.admin"),
     MINIMUM_ONE_ADMIN_REQUIRED("minimum.one.admin.required"),
-    VERIFICATION_FAILED("verification.failed")
+    VERIFICATION_FAILED("verification.failed"),
+    PRIORITY_ALREADY_EXIST("priority.already.exist"),
     ;
     private final String responseMessage;
 }
