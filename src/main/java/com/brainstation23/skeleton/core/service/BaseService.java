@@ -108,6 +108,10 @@ public class BaseService {
         return getCurrentUserContext().getUserIdentity();
     }
 
+    public String getUserName() {
+        return getCurrentUserContext().getUserName();
+    }
+
     public String getCorrelationId() {
         return CorrelationContextHolder.getCorrelationIdFromContext();
     }
