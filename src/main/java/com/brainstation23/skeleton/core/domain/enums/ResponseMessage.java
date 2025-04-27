@@ -36,6 +36,8 @@ public enum ResponseMessage {
     MINIMUM_ONE_ADMIN_REQUIRED("minimum.one.admin.required"),
     GROUP_NOT_FOUND("group.not.found"),
     EVENT_NOT_FOUND("event.not.found"),
-    VERIFICATION_FAILED("verification.failed");
+    VERIFICATION_FAILED("verification.failed"),
+    PRIORITY_ALREADY_EXIST("priority.already.exist"),
+    ;
     private final String responseMessage;
 }
