@@ -15,4 +15,14 @@ public interface GroupEventRepository extends JpaRepository<GroupEvent, Long> {
     List<GroupEvent> findByUserIdentity(String userIdentity);
 
     Optional<GroupEvent> findFirstByEventId(String eventId);
+
+    Optional<GroupEvent> findByEventIdAndUserIdentity(String eventId, String userIdentity);
+
+    Optional<GroupEvent> findByEventIdAndUsername(String eventId, String username);
+
+    List<GroupEvent> findAllByUserIdentity(String userIdentity);
+
+    List<GroupEvent> findByEventId(String eventId);
+
+    void deleteAllByEventId(String eventId);
 }

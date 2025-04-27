@@ -29,6 +29,9 @@ public class GroupEvent {
     @Column(name = "user_identity", nullable = false)
     private String userIdentity;
 
+    @Column(name = "username", nullable = false)
+    private String username;
+
     @Column(name = "event_name", nullable = false)
     private String eventName;
 

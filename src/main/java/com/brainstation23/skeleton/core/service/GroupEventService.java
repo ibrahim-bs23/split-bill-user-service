@@ -17,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -65,6 +67,7 @@ public class GroupEventService extends BaseService {
         newEvent.setEventId(UUID.randomUUID().toString().replace("-", ""));
         newEvent.setGroupId(eventRequest.getGroupId());
         newEvent.setUserIdentity(groupMember.getUserIdentity());
+        newEvent.setUsername(groupMember.getUserName());
         newEvent.setEventName(eventRequest.getEventName());
         newEvent.setDescription(eventRequest.getDescription());
         newEvent.setCreatedBy(getUserIdentity());
@@ -74,6 +77,125 @@ public class GroupEventService extends BaseService {
         newEvent.setEventStatus(GroupEventStatusEnum.ACTIVE.toString());
         return newEvent;
     }
+
+    @Transactional
+    public GroupEvent addMemberToEvent(String eventId, List<String> usernames) {
+
+        GroupEvent groupEvent = groupEventRepository.findFirstByEventId(eventId)
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.EVENT_NOT_FOUND));
+
+        String currentUserIdentity = getUserIdentity();
+
+        validateEventUser(groupEvent.getEventId(), currentUserIdentity);
+
+        for (String username : usernames) {
+            addUserToEvent(groupEvent, username);
+        }
+
+        return groupEvent;
+    }
+
+    private void addUserToEvent(GroupEvent groupEvent, String username) {
+
+        GroupMember groupMember = groupMemberRepository.findByGroupIdAndUsername(groupEvent.getGroupId(), username)
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.GROUP_NOT_FOUND));
+
+        GroupEvent participantEvent = GroupEvent.builder()
+                .eventId(groupEvent.getEventId())
+                .groupId(groupEvent.getGroupId())
+                .userIdentity(groupMember.getUserIdentity())
+                .eventName(groupEvent.getEventName())
+                .description(groupEvent.getDescription())
+                .createdBy(groupEvent.getCreatedBy())
+                .createdAt(getCurrentDate())
+                .eventDate(groupEvent.getEventDate())
+                .totalSpending(groupEvent.getTotalSpending())
+                .eventStatus(GroupEventStatusEnum.ACTIVE.toString())
+                .username(username)
+                .build();
+
+        groupEventRepository.save(participantEvent);
+
+    }
+
+    @Transactional
+    public GroupEvent removeMembersFromEvent(String eventId, List<String> usernames) {
+
+        GroupEvent groupEvent = groupEventRepository.findFirstByEventId(eventId)
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.EVENT_NOT_FOUND));
+
+        String currentUserIdentity = getUserIdentity();
+
+        validateEventUser(groupEvent.getGroupId(), currentUserIdentity);
+
+        for (String username : usernames) {
+            removeParticipantFromEvent(groupEvent, username);
+        }
+
+        return groupEvent;
+
+    }
+
+    private void removeParticipantFromEvent(GroupEvent event, String username) {
+
+        GroupEvent participantEvent = groupEventRepository.findByEventIdAndUsername(event.getEventId(), username)
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.EVENT_NOT_FOUND));
+
+        groupEventRepository.delete(participantEvent);
+    }
+
+    @Transactional
+    public String deleteEvent(String eventId) {
+
+        GroupEvent groupEvent = groupEventRepository.findFirstByEventId(eventId)
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.EVENT_NOT_FOUND));
+
+        String currentUserIdentity = getUserIdentity();
+
+        validateEventUser(groupEvent.getGroupId(), currentUserIdentity);
+
+        groupEventRepository.deleteAllByEventId(eventId);
+
+        return ResponseMessage.OPERATION_SUCCESSFUL.getResponseMessage();
+
+    }
+
+
+    @Transactional
+    public List<GroupEventResponse> fetchUserWiseEvents() {
+
+        String currentUserIdentity = getUserIdentity();
+
+        List<GroupEvent> groupEventList = groupEventRepository.findAllByUserIdentity(currentUserIdentity);
+
+        List<GroupEventResponse> groupEventResponseList = groupEventList.stream()
+                .map(groupEvent -> mapToEventResponse(groupEvent))
+                .collect(Collectors.toList());
+
+        return groupEventResponseList;
+    }
+
+    @Transactional
+    public GroupEventResponse fetchUserWiseEventDetails(String eventId) {
+
+        String currentUserIdentity = getUserIdentity();
+
+        validateEventUser(eventId, currentUserIdentity);
+
+        GroupEvent groupEvent = groupEventRepository.findFirstByEventId(eventId)
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.EVENT_NOT_FOUND));
+
+        return mapToEventResponse(groupEvent);
+    }
+
+
+    private void validateEventUser(String eventId, String userIdentity) {
+
+        groupEventRepository.findByEventIdAndUserIdentity(eventId, userIdentity)
+                .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.USER_NOT_FOUND));
+
+    }
+
 
     private void validateEventRequest(GroupEventRequest eventRequest) {
         if (Objects.isNull(eventRequest.getGroupId()) || eventRequest.getEventName().isEmpty()) {
