@@ -3,6 +3,7 @@ package com.brainstation23.skeleton.core.service;
 import com.brainstation23.skeleton.core.domain.enums.GroupEventStatusEnum;
 import com.brainstation23.skeleton.core.domain.enums.ResponseMessage;
 import com.brainstation23.skeleton.core.domain.exceptions.InvalidRequestDataException;
+import com.brainstation23.skeleton.core.domain.request.IndividualExpenseRequest;
 import com.brainstation23.skeleton.data.entity.GroupEvent;
 import com.brainstation23.skeleton.data.entity.GroupMember;
 import com.brainstation23.skeleton.data.repository.GroupEventRepository;
@@ -17,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,6 +29,7 @@ public class GroupEventService extends BaseService {
 
     private final GroupEventRepository groupEventRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final ExpenseManagentService expenseManagentService;
 
     @Transactional
     public GroupEventResponse createOrUpdateEvent(GroupEventRequest eventRequest) {
@@ -55,11 +56,21 @@ public class GroupEventService extends BaseService {
 
         } else {
             groupEvent = createGroupEvent(eventRequest, groupMember);
+            expenseManagentService.createIndividualExpense(buildIndividualExpenseRequest(groupEvent));
         }
 
         groupEventRepository.save(groupEvent);
 
         return mapToEventResponse(groupEvent);
+    }
+
+    private IndividualExpenseRequest buildIndividualExpenseRequest(GroupEvent groupEvent) {
+        return IndividualExpenseRequest.builder()
+                .eventId(groupEvent.getEventId())
+                .groupId(groupEvent.getGroupId())
+                .userIdentity(groupEvent.getUserIdentity())
+                .userName(groupEvent.getUsername())
+                .build();
     }
 
     private GroupEvent createGroupEvent(GroupEventRequest eventRequest, GroupMember groupMember) {
@@ -90,6 +101,7 @@ public class GroupEventService extends BaseService {
 
         for (String username : usernames) {
             addUserToEvent(groupEvent, username);
+            expenseManagentService.createIndividualExpense(buildIndividualExpenseRequest(groupEvent));
         }
 
         return groupEvent;
