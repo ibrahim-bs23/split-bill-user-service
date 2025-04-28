@@ -10,6 +10,7 @@ import com.brainstation23.skeleton.core.service.BaseService;
 import com.brainstation23.skeleton.data.entity.user.UserLinkAccounts;
 import com.brainstation23.skeleton.data.repository.user.UserLinkAccountsRepository;
 import com.brainstation23.skeleton.presenter.domain.request.user.LinkRequest;
+import com.brainstation23.skeleton.presenter.domain.request.user.PreferableLinkAccountRequests;
 import com.brainstation23.skeleton.presenter.domain.request.user.UpdateLinkRequest;
 import com.brainstation23.skeleton.presenter.domain.response.user.LinkAccountResponse;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,31 @@ public class UserLinkAccountsService extends BaseService {
         userLinkAccountsRepository.save(userLinkAccounts);
     }
 
+    public String getPreferablePaymentType(PreferableLinkAccountRequests preferableLinkAccountRequests) {
+        List<LinkAccountResponse> senderLinkAccounts=getUserLinkAccountsViaUserName(preferableLinkAccountRequests.getSenderUsername());
+        List<LinkAccountResponse> receiverLinkAccounts=getUserLinkAccountsViaUserName(preferableLinkAccountRequests.getReceiverUsername());
+
+        for (LinkAccountResponse senderLinkAccount : senderLinkAccounts) {
+            for (LinkAccountResponse receiverLinkAccount : receiverLinkAccounts) {
+                if (senderLinkAccount.getTransferType().equals(receiverLinkAccount.getTransferType())) {
+                    return senderLinkAccount.getTransferType();
+                }
+            }
+        }
+        throw new UnauthorizedResourceException(ResponseMessage.INCOMPATIBLE_PAYMENT_TYPE);
+    }
+
+    public List<LinkAccountResponse> getUserLinkAccountsViaUserName(String userName) {
+        return userLinkAccountsRepository.findAllByUserName(userName, Sort.by(Sort.Order.asc("priority")))
+                .stream()
+                .map(userLinkAccounts -> LinkAccountResponse.builder()
+                        .id(userLinkAccounts.getId())
+                        .fromAccount(userLinkAccounts.getFromAccount())
+                        .priority(userLinkAccounts.getPriority())
+                        .transferType(userLinkAccounts.getTransferType().name())
+                        .build())
+                .collect(Collectors.toList());
+    }
 
    public List<LinkAccountResponse> getUserLinkAccounts() {
         return userLinkAccountsRepository.findAllByUserName(getUserName(), Sort.by(Sort.Order.asc("priority")))

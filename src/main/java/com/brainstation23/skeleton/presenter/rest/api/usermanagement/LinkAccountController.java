@@ -7,6 +7,7 @@ import com.brainstation23.skeleton.core.domain.model.ApiResponse;
 import com.brainstation23.skeleton.core.service.BaseService;
 import com.brainstation23.skeleton.core.service.impl.UserLinkAccountsService;
 import com.brainstation23.skeleton.presenter.domain.request.user.LinkRequest;
+import com.brainstation23.skeleton.presenter.domain.request.user.PreferableLinkAccountRequests;
 import com.brainstation23.skeleton.presenter.domain.request.user.UpdateLinkRequest;
 import com.brainstation23.skeleton.presenter.domain.response.user.LinkAccountResponse;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,12 @@ public class LinkAccountController extends BaseService {
     public ApiResponse<?> deleteLinkAccounts(@PathVariable Long id) {
         userLinkAccountsService.deleteLinkAccounts(id);
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL));
+    }
+
+    @GetMapping("/get-preferable-payment-type")
+    public ApiResponse<String> getPreferablePaymentType(@RequestBody PreferableLinkAccountRequests preferableLinkAccountRequests) {
+        String paymentType = userLinkAccountsService.getPreferablePaymentType(preferableLinkAccountRequests);
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL), paymentType);
     }
 
 
