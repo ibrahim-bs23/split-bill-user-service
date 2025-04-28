@@ -21,4 +21,6 @@ public class PaymentRequest {
     private String transactionType;
     @NotNull
     private String currency;
+    @NotNull
+    private String transactionId;
 }

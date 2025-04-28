@@ -6,6 +6,8 @@ import com.brainstation23.skeleton.core.service.BaseService;
 import com.brainstation23.skeleton.data.entity.expense.IndividualEventExpense;
 import com.brainstation23.skeleton.data.repository.expense.IndividualEventExpenseRepository;
 import com.brainstation23.skeleton.presenter.domain.request.user.PaymentRequest;
+import com.brainstation23.skeleton.presenter.service.nonTransactional.NonTransactionalIntegrationService;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService extends BaseService {
 
     private final IndividualEventExpenseRepository individualEventExpenseRepository;
+    private final NonTransactionalIntegrationService nonTransactionalIntegrationService;
 
     @Transactional
     public void initiatePaymentProcess(PaymentRequest paymentRequest) {
@@ -24,7 +27,11 @@ public class PaymentService extends BaseService {
         String eventId = paymentRequest.getEventId();
         updateSenderIndividualExpenseReport(senderUsername,amount,eventId);
         updateReceiverIndividualExpenseReport(receiverUsername,amount,eventId);
-        //TODO: update payment history status
+        updatePaymentHistory(paymentRequest.getTransactionId());
+    }
+
+    private void updatePaymentHistory(@NotNull String transactionId) {
+        nonTransactionalIntegrationService.updatePaymentHistory(transactionId);
     }
 
     @Transactional
