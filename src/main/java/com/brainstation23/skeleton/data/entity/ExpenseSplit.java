@@ -43,6 +43,9 @@ public class ExpenseSplit {
     @Column(name = "currency")
     private String currency;
 
+    @Column(name = "request_status")
+    private String requestStatus;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false, name = "CREATED_AT")
