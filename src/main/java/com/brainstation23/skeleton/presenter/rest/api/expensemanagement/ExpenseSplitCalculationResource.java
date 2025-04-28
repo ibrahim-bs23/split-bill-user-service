@@ -9,10 +9,7 @@ import com.brainstation23.skeleton.core.service.ExpenseSplitCalculationService;
 import com.brainstation23.skeleton.data.entity.ExpenseSplit;
 import com.brainstation23.skeleton.presenter.rest.api.BaseResource;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,10 +20,17 @@ public class ExpenseSplitCalculationResource extends BaseResource {
 
     private final ExpenseSplitCalculationService expenseSplitCalculationService;
 
-    @GetMapping("/{eventId}")
+    @PostMapping("/{eventId}")
     public ApiResponse<List<ExpenseSplit>> splitEventWiseExpense(@PathVariable String eventId) {
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
                 expenseSplitCalculationService.settleExpenses(eventId)
+        );
+    }
+
+    @GetMapping("/{eventId}")
+    public ApiResponse<List<ExpenseSplit>> fetchEventWiseExpenseSplit(@PathVariable String eventId) {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                expenseSplitCalculationService.fetchEventWiseExpenseSplit(eventId)
         );
     }
 }

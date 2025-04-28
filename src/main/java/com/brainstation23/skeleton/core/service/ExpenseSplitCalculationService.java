@@ -130,4 +130,17 @@ public class ExpenseSplitCalculationService extends BaseService {
                 .build();
     }
 
+
+    public List<ExpenseSplit> fetchEventWiseExpenseSplit(String eventId) {
+
+        final String userIdentity = getUserIdentity();
+
+        return expenseSplitRepository.findAllByEventIdAndSenderUserIdentity(eventId, userIdentity)
+                .stream()
+                .sorted(Comparator.comparing(ExpenseSplit::getCreatedAt).reversed())
+                .toList();
+
+
+    }
+
 }
