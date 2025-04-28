@@ -38,6 +38,7 @@ public enum ResponseMessage {
     EVENT_NOT_FOUND("event.not.found"),
     VERIFICATION_FAILED("verification.failed"),
     PRIORITY_ALREADY_EXIST("priority.already.exist"),
+    INCOMPATIBLE_PAYMENT_TYPE("incompatible.payment.type"),
     ;
     private final String responseMessage;
 }
