@@ -1,6 +1,7 @@
 package com.brainstation23.skeleton.core.service;
 
 
+import com.brainstation23.skeleton.core.domain.enums.RequestMoneyStatusEnum;
 import com.brainstation23.skeleton.core.domain.enums.ResponseMessage;
 import com.brainstation23.skeleton.core.domain.exceptions.InvalidRequestDataException;
 import com.brainstation23.skeleton.data.entity.ExpenseSplit;
@@ -127,6 +128,7 @@ public class ExpenseSplitCalculationService extends BaseService {
                 .receiverUserIdentity(creditor.userIdentity)
                 .transactionAmount(settleAmount)
                 .currency("BDT")
+                .requestStatus(RequestMoneyStatusEnum.PENDING.toString())
                 .build();
     }
 
