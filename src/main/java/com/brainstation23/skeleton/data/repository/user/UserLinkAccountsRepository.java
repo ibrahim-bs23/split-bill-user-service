@@ -12,7 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserLinkAccountsRepository extends JpaRepository<UserLinkAccounts, Long> {
-    Optional<UserLinkAccounts> findByUserName(String userName);
 
     Optional<UserLinkAccounts> findByUserNameAndFromAccountAndTransferType(String userName, String fromAccount, TransferType transferType);
 
