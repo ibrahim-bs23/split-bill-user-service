@@ -55,4 +55,6 @@ logging:
 
 services:
   payment:
-    base-url: localhost:9014
+    base-url: http://localhost:9014
+  remittance:
+    base-url: localhost:90

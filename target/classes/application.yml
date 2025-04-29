@@ -91,3 +91,9 @@ payload:
   encryption:
     secret:
       key: 3XT3RN@L_P@YL0@D_S3CR3T
+feign:
+  client:
+    config:
+      default:
+        ribbon:
+          enabled: false

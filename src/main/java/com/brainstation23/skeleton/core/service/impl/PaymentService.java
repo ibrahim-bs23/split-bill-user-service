@@ -19,7 +19,7 @@ public class PaymentService extends BaseService {
     private final IndividualEventExpenseRepository individualEventExpenseRepository;
     private final NonTransactionalIntegrationService nonTransactionalIntegrationService;
 
-    @Transactional
+
     public void initiatePaymentProcess(PaymentRequest paymentRequest) {
         String senderUsername = paymentRequest.getSenderUsername();
         String receiverUsername = paymentRequest.getReceiverUsername();
@@ -34,7 +34,7 @@ public class PaymentService extends BaseService {
         nonTransactionalIntegrationService.updatePaymentHistory(transactionId);
     }
 
-    @Transactional
+
     public void updateReceiverIndividualExpenseReport(String receiverUsername, Double amount, String eventId) {
         IndividualEventExpense individualEventExpense = individualEventExpenseRepository.findByEventIdAndUserName(eventId, receiverUsername).orElseThrow(
                 () -> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)
@@ -47,7 +47,7 @@ public class PaymentService extends BaseService {
         individualEventExpenseRepository.save(individualEventExpense);
     }
 
-    @Transactional
+
     public void updateSenderIndividualExpenseReport(String senderUsername, Double amount,String eventId) {
         IndividualEventExpense individualEventExpense = individualEventExpenseRepository.findByEventIdAndUserName(eventId, senderUsername).orElseThrow(
                 () -> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)

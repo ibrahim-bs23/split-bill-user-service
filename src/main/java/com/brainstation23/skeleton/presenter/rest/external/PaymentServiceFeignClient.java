@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
-@FeignClient(name = "${services.payment.base-url}", path = "/api/v1/payment", contextId = "payment-service")
+@FeignClient(name = "payment-service", url = "http://localhost:9014", path = "/api/v1/payment", contextId = "payment-service")
 public interface PaymentServiceFeignClient {
 
     @PutMapping("/process/update-status/{transactionId}")
