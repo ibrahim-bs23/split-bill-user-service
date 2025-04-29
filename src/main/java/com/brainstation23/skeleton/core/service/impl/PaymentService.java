@@ -41,7 +41,6 @@ public class PaymentService extends BaseService {
         nonTransactionalIntegrationService.updatePaymentHistory(transactionId);
     }
 
-    @Transactional
     public void updateExpenseSplitRequestStatus(String senderUsername, String receiverUsername, String eventId) {
         final Optional<ExpenseSplit> expenseSplitOptional
                 = expenseSplitRepository.findByEventIdAndSenderUserNameAndReceiverUserName(
