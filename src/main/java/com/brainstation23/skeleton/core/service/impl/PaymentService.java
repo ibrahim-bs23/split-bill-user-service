@@ -9,6 +9,8 @@ import com.brainstation23.skeleton.data.entity.expense.IndividualEventExpense;
 import com.brainstation23.skeleton.data.repository.ExpenseSplitRepository;
 import com.brainstation23.skeleton.data.repository.expense.IndividualEventExpenseRepository;
 import com.brainstation23.skeleton.presenter.domain.request.user.PaymentRequest;
+import com.brainstation23.skeleton.presenter.service.nonTransactional.NonTransactionalIntegrationService;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,8 +23,9 @@ public class PaymentService extends BaseService {
 
     private final IndividualEventExpenseRepository individualEventExpenseRepository;
     private final ExpenseSplitRepository expenseSplitRepository;
+    private final NonTransactionalIntegrationService nonTransactionalIntegrationService;
 
-    @Transactional
+
     public void initiatePaymentProcess(PaymentRequest paymentRequest) {
         String senderUsername = paymentRequest.getSenderUsername();
         String receiverUsername = paymentRequest.getReceiverUsername();
@@ -31,7 +34,11 @@ public class PaymentService extends BaseService {
         updateSenderIndividualExpenseReport(senderUsername,amount,eventId);
         updateReceiverIndividualExpenseReport(receiverUsername,amount,eventId);
         updateExpenseSplitRequestStatus(senderUsername,receiverUsername,eventId);
-        //TODO: update payment history status
+        updatePaymentHistory(paymentRequest.getTransactionId());
+    }
+
+    private void updatePaymentHistory(@NotNull String transactionId) {
+        nonTransactionalIntegrationService.updatePaymentHistory(transactionId);
     }
 
     @Transactional
@@ -48,7 +55,7 @@ public class PaymentService extends BaseService {
         }
     }
 
-    @Transactional
+
     public void updateReceiverIndividualExpenseReport(String receiverUsername, Double amount, String eventId) {
         IndividualEventExpense individualEventExpense = individualEventExpenseRepository.findByEventIdAndUserName(eventId, receiverUsername).orElseThrow(
                 () -> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)
@@ -61,7 +68,7 @@ public class PaymentService extends BaseService {
         individualEventExpenseRepository.save(individualEventExpense);
     }
 
-    @Transactional
+
     public void updateSenderIndividualExpenseReport(String senderUsername, Double amount,String eventId) {
         IndividualEventExpense individualEventExpense = individualEventExpenseRepository.findByEventIdAndUserName(eventId, senderUsername).orElseThrow(
                 () -> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)
