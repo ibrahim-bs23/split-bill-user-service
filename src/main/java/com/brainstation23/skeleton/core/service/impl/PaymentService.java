@@ -41,7 +41,6 @@ public class PaymentService extends BaseService {
         nonTransactionalIntegrationService.updatePaymentHistory(transactionId);
     }
 
-    @Transactional
     public void updateExpenseSplitRequestStatus(String senderUsername, String receiverUsername, String eventId) {
         final Optional<ExpenseSplit> expenseSplitOptional
                 = expenseSplitRepository.findByEventIdAndSenderUserNameAndReceiverUserName(
@@ -52,6 +51,7 @@ public class PaymentService extends BaseService {
         if (expenseSplitOptional.isPresent())
         {
             expenseSplitOptional.get().setRequestStatus(RequestMoneyStatusEnum.ACCEPTED.toString());
+            expenseSplitRepository.save(expenseSplitOptional.get());
         }
     }
 
@@ -62,7 +62,7 @@ public class PaymentService extends BaseService {
         );
         double currentOutStanding=individualEventExpense.getOutstandingBalance()-amount;
         individualEventExpense.setOutstandingBalance(currentOutStanding);
-        if(individualEventExpense.getDueAmount()==0 && individualEventExpense.getOutstandingBalance()==0) {
+        if(individualEventExpense.getDueAmount()==0 && individualEventExpense.getOutstandingBalance()>=0 && individualEventExpense.getOutstandingBalance()<1) {
             individualEventExpense.setPaymentStatus("COMPLETED");
         }
         individualEventExpenseRepository.save(individualEventExpense);
@@ -75,7 +75,7 @@ public class PaymentService extends BaseService {
         );
         double currentDueAmount = individualEventExpense.getDueAmount()-amount;
         individualEventExpense.setDueAmount(currentDueAmount);
-        if(individualEventExpense.getDueAmount()==0 && individualEventExpense.getOutstandingBalance()==0) {
+        if(individualEventExpense.getDueAmount()>=0 && individualEventExpense.getDueAmount()<1 && individualEventExpense.getOutstandingBalance()==0) {
             individualEventExpense.setPaymentStatus("COMPLETED");
         }
         individualEventExpenseRepository.save(individualEventExpense);
