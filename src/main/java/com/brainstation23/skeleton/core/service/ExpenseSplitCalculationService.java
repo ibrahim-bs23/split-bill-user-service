@@ -50,8 +50,15 @@ public class ExpenseSplitCalculationService extends BaseService {
             throw new InvalidRequestDataException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS);
         }
 
-
         List<IndividualEventExpense> expenses = individualEventExpenseRepository.findAllByEventId(eventId);
+
+        boolean isSplittable = expenses.stream()
+                .allMatch(expense -> Objects.equals(expense.getIsEditable(), Boolean.FALSE));
+
+        if (!isSplittable) {
+            throw new InvalidRequestDataException(ResponseMessage.EVENT_NOT_SPLITTABLE);
+        }
+
 
         BigDecimal total = expenses.stream()
                 .map(expense -> BigDecimal.valueOf(expense.getSpentAmount()))
@@ -69,22 +76,10 @@ public class ExpenseSplitCalculationService extends BaseService {
 
         for (IndividualEventExpense expense : expenses) {
 
-            BigDecimal spentAmount = BigDecimal.valueOf(expense.getSpentAmount());
+            updateIndividualExpense(expense, fairShare, creditors, debtors);
 
-            BigDecimal net = spentAmount.subtract(fairShare).setScale(2, RoundingMode.HALF_UP);
-
-            if (net.compareTo(BigDecimal.ZERO) > 0) {
-                expense.setOutstandingBalance(net.doubleValue());
-                creditors.offer(new Balance(expense.getUserName(),expense.getUserIdentity(), net));
-            } else if (net.compareTo(BigDecimal.ZERO) < 0) {
-                expense.setDueAmount(net.negate().doubleValue());
-                debtors.offer(new Balance(expense.getUserName(),expense.getUserIdentity(), net.negate()));
-            }
-
-            individualEventExpenseRepository.save(expense);
         }
 
-        List<ExpenseTransaction> result = new ArrayList<>();
 
         while (!debtors.isEmpty() && !creditors.isEmpty()) {
             Balance debtor = debtors.poll();
@@ -93,7 +88,6 @@ public class ExpenseSplitCalculationService extends BaseService {
             BigDecimal settleAmount = debtor.amount.min(creditor.amount);
             final ExpenseSplit expenseSplit = createExpenseSplit(debtor, creditor, eventId, settleAmount);
             expenseSplitRepository.save(expenseSplit);
-            result.add(new ExpenseTransaction(debtor.name, creditor.name, settleAmount));
 
             BigDecimal debtorLeft = debtor.amount.subtract(settleAmount);
             BigDecimal creditorLeft = creditor.amount.subtract(settleAmount);
@@ -108,6 +102,22 @@ public class ExpenseSplitCalculationService extends BaseService {
         }
 
         return expenseSplitRepository.findAllByEventId(eventId);
+    }
+
+    private void updateIndividualExpense(IndividualEventExpense expense, BigDecimal fairShare, PriorityQueue<Balance> creditors, PriorityQueue<Balance> debtors) {
+        BigDecimal spentAmount = BigDecimal.valueOf(expense.getSpentAmount());
+
+        BigDecimal net = spentAmount.subtract(fairShare).setScale(2, RoundingMode.HALF_UP);
+
+        if (net.compareTo(BigDecimal.ZERO) > 0) {
+            expense.setOutstandingBalance(net.doubleValue());
+            creditors.offer(new Balance(expense.getUserName(), expense.getUserIdentity(), net));
+        } else if (net.compareTo(BigDecimal.ZERO) < 0) {
+            expense.setDueAmount(net.negate().doubleValue());
+            debtors.offer(new Balance(expense.getUserName(), expense.getUserIdentity(), net.negate()));
+        }
+
+        individualEventExpenseRepository.save(expense);
     }
 
     private ExpenseSplit createExpenseSplit(Balance debtor, Balance creditor, String eventId, BigDecimal settleAmount) {
