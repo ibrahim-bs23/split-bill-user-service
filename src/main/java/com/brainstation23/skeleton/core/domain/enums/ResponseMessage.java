@@ -39,6 +39,6 @@ public enum ResponseMessage {
     VERIFICATION_FAILED("verification.failed"),
     PRIORITY_ALREADY_EXIST("priority.already.exist"),
     INCOMPATIBLE_PAYMENT_TYPE("incompatible.payment.type"),
-    ;
+    EVENT_NOT_SPLITTABLE("event.not.splittable");
     private final String responseMessage;
 }
