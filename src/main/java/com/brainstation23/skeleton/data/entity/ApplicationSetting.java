@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "APPLICATION_SETTING")
+@Table(name = "APPLICATION_SETTING",schema = "user_service")
 public class ApplicationSetting extends BaseEntity {
 
     @Column(name = "SETTING_NAME")

@@ -97,3 +97,8 @@ feign:
       default:
         ribbon:
           enabled: false
+
+cbs:
+  eq-connection:
+    token:
+      ttl-in-minutes: ${CBS_EQ_COMMONWS_TOKEN_IN_MIN:240}

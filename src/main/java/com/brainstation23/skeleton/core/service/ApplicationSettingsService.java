@@ -133,7 +133,7 @@ public class ApplicationSettingsService extends BaseService {
     }
 
 
-    private Optional<ApplicationSetting> getApplicationSettingByCode(final String settingCode) {
+    public Optional<ApplicationSetting> getApplicationSettingByCode(final String settingCode) {
         return applicationSettingsRepository.findBySettingCode(settingCode);
     }
 
