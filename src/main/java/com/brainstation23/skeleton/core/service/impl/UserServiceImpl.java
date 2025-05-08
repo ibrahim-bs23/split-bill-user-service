@@ -8,6 +8,7 @@ import com.brainstation23.skeleton.common.utils.SessionIdUtil;
 import com.brainstation23.skeleton.core.domain.enums.ApplicationSettingsCode;
 import com.brainstation23.skeleton.core.domain.enums.ConnectionStatus;
 import com.brainstation23.skeleton.core.domain.enums.ResponseMessage;
+import com.brainstation23.skeleton.core.domain.enums.UserTypeEnum;
 import com.brainstation23.skeleton.core.domain.exceptions.*;
 import com.brainstation23.skeleton.core.domain.model.CurrentUserContext;
 import com.brainstation23.skeleton.core.domain.model.UserJwtPayload;
@@ -118,6 +119,7 @@ public class UserServiceImpl extends BaseService implements UserService {
         accessTokenRedis.setEmail(user.getEmail());
         accessTokenRedis.setPhoneNumber(user.getPhoneNumber());
         accessTokenRedis.setScope(scope);
+        accessTokenRedis.setUserType(UserTypeEnum.CUSTOMER);
         return accessTokenRedis;
     }
 
@@ -134,7 +136,7 @@ public class UserServiceImpl extends BaseService implements UserService {
         }
         Users users = getUser(request);
         validatePassword(request, users);
-        return users.getIsActive().equals(Boolean.TRUE)? handleActiveUser(request, users):handleInactiveUser(request, users);
+        return users.getIsActive().equals(Boolean.TRUE)? handleActiveUser(users):handleInactiveUser(users);
     }
 
     public Boolean deleteTokenAndSession(String userIdentity) {
@@ -150,7 +152,7 @@ public class UserServiceImpl extends BaseService implements UserService {
         return false;
     }
 
-    private TokenResponse handleInactiveUser(AuthenticationRequest request, Users users) {
+    private TokenResponse handleInactiveUser(Users users) {
         TokenResponse tokenResponse = new TokenResponse();
         tokenResponse.setIsActive(users.getIsActive());
         return tokenResponse;
@@ -279,7 +281,7 @@ public class UserServiceImpl extends BaseService implements UserService {
         }
     }
 
-    private TokenResponse handleActiveUser(AuthenticationRequest request, Users users) {
+    private TokenResponse handleActiveUser(Users users) {
         final AccessTokenResponse response = this.createAccessTokenResponse(users);
         final String sessionId = SessionIdUtil.getSessionId();
         final String redisAccessTokenValue = ChecksumUtil.createChecksum(response.getAccessToken());

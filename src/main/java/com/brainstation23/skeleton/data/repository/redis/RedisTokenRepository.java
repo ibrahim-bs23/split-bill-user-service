@@ -32,7 +32,7 @@ public class RedisTokenRepository {
             throw new DatabaseException(ResponseMessage.INVALID_REQUEST_DATA);
         }
         int tokenLiveMinutes =Integer.parseInt(applicationSettingService.getApplicationSettingByCode(ApplicationSettingsCode.JWT_TOKEN_LIVE_MIN.getCode()).get().getSettingValue());
-        template.opsForValue().set(FOLDER.concat(redisAccessToken.getUserIdentity()), val, tokenLiveMinutes, TimeUnit.MINUTES);
+        template.opsForValue().set(FOLDER.concat(redisAccessToken.getUsername()), val, tokenLiveMinutes, TimeUnit.MINUTES);
     }
 
     public RedisAccessToken get(String userIdentity) {

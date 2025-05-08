@@ -36,7 +36,7 @@ public class AccessScopeControlAspect extends BaseAspect {
         scopeList.parallelStream()
                 .filter(scope -> {
                     final String[] parts = pattern.split(scope, 2);
-                    return (parts[0].equals(UserTypeEnum.getUserType(userContext.getUserType()).getText())
+                    return (parts[0].equals(UserTypeEnum.getUserType(userContext.getUserType().getCode()).getText())
                             && (userScopes.contains(SpecialCharsEnum.ASTERISK.getSign()) || userScopes.contains(parts[1])));
                 })
                 .findFirst()

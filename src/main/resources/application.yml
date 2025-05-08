@@ -27,7 +27,7 @@ logging:
 
 info:
   app:
-    name: Customer Service
+    name: User Service
     description: This service is responsible for Customer.
     version: 1.0
 
@@ -58,7 +58,7 @@ spring:
       discovery:
         all-namespaces: false
         namespaces:
-          - skeleton
+          - user
   mail:
     host: smtp.gmail.com
     port: 587

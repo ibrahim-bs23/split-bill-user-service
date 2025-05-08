@@ -1,7 +1,9 @@
 package com.brainstation23.skeleton.data.entity.redis;
 
+import com.brainstation23.skeleton.core.domain.enums.UserTypeEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.hibernate.usertype.UserType;
 
 import java.io.Serializable;
 import java.util.List;
@@ -17,6 +19,7 @@ public class RedisAccessToken implements Serializable {
     private String userIdentity;
     private String userGroupCode;
     private String productTypeCode;
+    private UserTypeEnum userType;
 
     private String sessionId;
     private String coRelationId;
