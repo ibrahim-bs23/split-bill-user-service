@@ -3,6 +3,7 @@ package com.brainstation23.skeleton.core.service;
 import com.brainstation23.skeleton.core.domain.enums.GroupEventStatusEnum;
 import com.brainstation23.skeleton.core.domain.enums.ResponseMessage;
 import com.brainstation23.skeleton.core.domain.exceptions.InvalidRequestDataException;
+import com.brainstation23.skeleton.core.domain.exceptions.RecordNotFoundException;
 import com.brainstation23.skeleton.core.domain.request.IndividualExpenseRequest;
 import com.brainstation23.skeleton.data.entity.GroupEvent;
 import com.brainstation23.skeleton.data.entity.GroupMember;
@@ -157,12 +158,19 @@ public class GroupEventService extends BaseService {
 
     }
 
-    private void removeParticipantFromEvent(GroupEvent event, String username) {
+    @Transactional
+    public void removeParticipantFromEvent(GroupEvent event, String username) {
 
         GroupEvent participantEvent = groupEventRepository.findByEventIdAndUsername(event.getEventId(), username)
                 .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.EVENT_NOT_FOUND));
 
         groupEventRepository.delete(participantEvent);
+        deleteIndividualExpense(participantEvent);
+    }
+
+    @Transactional
+    public void deleteIndividualExpense(GroupEvent participantEvent) {
+        expenseManagentService.deleteIndividualExpense(participantEvent.getEventId(), participantEvent.getUsername());
     }
 
     @Transactional

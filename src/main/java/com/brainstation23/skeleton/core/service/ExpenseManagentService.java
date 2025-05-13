@@ -23,4 +23,6 @@ public interface ExpenseManagentService {
 
     List<IndividualExpenseResponse> getEventExpenseInvoices(String eventId);
 
+    void deleteIndividualExpense(String eventId,String username);
+
 }
