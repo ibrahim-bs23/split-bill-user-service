@@ -8,17 +8,22 @@ import com.brainstation23.skeleton.core.domain.request.UpdateExpenseRequest;
 import com.brainstation23.skeleton.core.domain.request.UpdateIndividualExpense;
 import com.brainstation23.skeleton.core.domain.response.IndividualExpenseResponse;
 import com.brainstation23.skeleton.core.service.BaseService;
+import com.brainstation23.skeleton.core.service.EventAndExpenseCommonService;
 import com.brainstation23.skeleton.core.service.ExpenseManagentService;
+import com.brainstation23.skeleton.core.service.GroupEventService;
 import com.brainstation23.skeleton.data.entity.expense.IndividualEventExpense;
+import com.brainstation23.skeleton.data.repository.expense.EventExpenseInvoiceRepository;
 import com.brainstation23.skeleton.data.repository.expense.IndividualEventExpenseRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +31,7 @@ import java.util.stream.Collectors;
 public class ExpenseManagementServiceImpl extends BaseService implements ExpenseManagentService {
 
     private final IndividualEventExpenseRepository individualEventExpenseRepository;
+    private final EventAndExpenseCommonService eventAndExpenseCommonService;
 
     @Transactional
     @Override
@@ -44,8 +50,7 @@ public class ExpenseManagementServiceImpl extends BaseService implements Expense
         double totalSpentAmount = request.getSpentAmount()+individualEventExpense.getSpentAmount();
         individualEventExpense.setSpentAmount(totalSpentAmount);
         individualEventExpenseRepository.save(individualEventExpense);
-
-        //TODO: Update the expense in the event
+        eventAndExpenseCommonService.updateEventExpense(individualEventExpense.getEventId(), new BigDecimal(totalSpentAmount));
     }
 
     @Override
@@ -81,6 +86,16 @@ public class ExpenseManagementServiceImpl extends BaseService implements Expense
         return individualEventExpenses.stream()
                 .map(this::mapToIndividualExpenseResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public void deleteIndividualExpense(String eventId, String username) {
+        IndividualEventExpense byEventIdAndUserName = individualEventExpenseRepository.findByEventIdAndUserName(eventId, username)
+                .orElseThrow(
+                        ()-> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)
+                );
+        individualEventExpenseRepository.deleteById(byEventIdAndUserName.getId());
     }
 
     private List<IndividualEventExpense> getAllIndividualExpenseForEvent(String eventId) {
