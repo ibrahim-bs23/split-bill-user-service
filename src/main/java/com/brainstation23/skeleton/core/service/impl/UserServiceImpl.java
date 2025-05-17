@@ -250,7 +250,16 @@ public class UserServiceImpl extends BaseService implements UserService {
     public String getConnectionStatus(String userName) {
        String user = getCurrentUserContext().getUsername();
         Optional<Connection> connection = connectionRepository.findByUserNameAndConnectedUser(user, userName);
-        return connection.map(value -> value.getConnectionStatus().toString()).orElse(ConnectionStatus.UNFRIENDED.toString());
+        Optional<Connection> bidirectional = connectionRepository.findByUserNameAndConnectedUser(userName, user);
+        if(connection.isPresent() ) {
+            return connection.get().getConnectionStatus().toString();
+        }
+        else if(bidirectional.isPresent()) {
+            return bidirectional.get().getConnectionStatus().toString();
+        }
+        else {
+            return ConnectionStatus.UNFRIENDED.toString();
+        }
     }
 
     private void createConnectionRequest(String receiver) {
