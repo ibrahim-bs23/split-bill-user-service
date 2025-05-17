@@ -189,7 +189,7 @@ public class UserServiceImpl extends BaseService implements UserService {
         Connection connection = connectionRepository.findByUserNameAndConnectedUserAndConnectionStatus(connectionUpdate.getConnectedUser(), senderUserName, ConnectionStatus.PENDING).orElseThrow(
                 () -> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)
         );
-        connection.setConnectionStatus(Objects.equals(connectionUpdate.getConnectionStatus(), ConnectionStatus.CONNECTED.toString()) ? ConnectionStatus.CONNECTED : ConnectionStatus.REJECTED);
+        connection.setConnectionStatus(Objects.equals(connectionUpdate.getConnectionStatus(), ConnectionStatus.CONNECTED.toString()) ? ConnectionStatus.CONNECTED : ConnectionStatus.UNFRIENDED);
         connectionRepository.save(connection);
     }
 
