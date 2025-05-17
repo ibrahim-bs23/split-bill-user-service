@@ -31,4 +31,6 @@ public interface UserService {
     UserResponseDTO getUserDetails(Long id);
 
     Boolean verifyConnection(String userName);
+
+    String getConnectionStatus(String userName);
 }
