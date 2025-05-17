@@ -59,4 +59,16 @@ public class UserController extends BaseService {
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL), response);
     }
 
+    @GetMapping("/user/details/{id}")
+    public ApiResponse<UserResponseDTO> getUserDetails(@PathVariable Long id) {
+        UserResponseDTO response = userService.getUserDetails(id);
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL), response);
+    }
+
+    @GetMapping("/verify-connection/{userName}")
+    public ApiResponse<Boolean> verifyConnection(@PathVariable String userName) {
+        Boolean response = userService.verifyConnection(userName);
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL), response);
+    }
+
 }

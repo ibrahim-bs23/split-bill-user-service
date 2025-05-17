@@ -236,6 +236,19 @@ public class UserServiceImpl extends BaseService implements UserService {
         throw new UnauthorizedResourceException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS);
     }
 
+    @Override
+    public UserResponseDTO getUserDetails(Long id) {
+       return userMapper.toUserResponseDTO(userRepository.findByIdAndIsActiveTrue(id).orElseThrow(
+               ()->new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)
+       ));
+    }
+
+    @Override
+    public Boolean verifyConnection(String userName) {
+       String user = getCurrentUserContext().getUserName();
+        return connectionRepository.findByUserNameAndConnectedUserAndConnectionStatus(user, userName, ConnectionStatus.CONNECTED).isPresent();
+    }
+
     private void createConnectionRequest(String receiver) {
         String senderUserName = getCurrentUserContext().getUserName();
         Connection connection = createConnection(senderUserName, receiver);

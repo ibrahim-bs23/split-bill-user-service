@@ -17,4 +17,6 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     List<Users> findUsersByUsernameLike(@Param("usernamePattern") String usernamePattern, Pageable pageable);
 
     Optional<Users> findByUserIdentity(String userIdentity);
+
+    Optional<Users> findByIdAndIsActiveTrue(Long id);
 }

@@ -27,4 +27,8 @@ public interface UserService {
     List<String> getUserFriends();
 
     void validateUser(ValidateUserEmail verificationCode);
+
+    UserResponseDTO getUserDetails(Long id);
+
+    Boolean verifyConnection(String userName);
 }
