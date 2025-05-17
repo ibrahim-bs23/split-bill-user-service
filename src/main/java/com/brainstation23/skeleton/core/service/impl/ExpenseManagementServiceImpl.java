@@ -3,7 +3,6 @@ package com.brainstation23.skeleton.core.service.impl;
 import com.brainstation23.skeleton.core.domain.enums.ResponseMessage;
 import com.brainstation23.skeleton.core.domain.exceptions.InvalidRequestDataException;
 import com.brainstation23.skeleton.core.domain.exceptions.RecordNotFoundException;
-import com.brainstation23.skeleton.core.domain.request.ExpenseDetailsRequest;
 import com.brainstation23.skeleton.core.domain.request.IndividualExpenseRequest;
 import com.brainstation23.skeleton.core.domain.request.UpdateExpenseRequest;
 import com.brainstation23.skeleton.core.domain.request.UpdateIndividualExpense;
@@ -121,7 +120,7 @@ public class ExpenseManagementServiceImpl extends BaseService implements Expense
 
     private IndividualEventExpense findIndividualExpense(UpdateIndividualExpense request) {
         validateEventId(request);
-        return individualEventExpenseRepository.findByEventIdAndUserName(request.getEventId(),getCurrentUserContext().getUserName()).orElseThrow(
+        return individualEventExpenseRepository.findByEventIdAndUserName(request.getEventId(),getCurrentUserContext().getUsername()).orElseThrow(
                 () -> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)
         );
     }

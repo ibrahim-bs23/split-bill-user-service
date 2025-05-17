@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 public class CurrentUserContext implements Serializable {
     private String userIdentity;
-    private String userName;
+    private String username;
     private UserTypeEnum userType;
     private Integer userLevel;
     private Integer userStatus;
