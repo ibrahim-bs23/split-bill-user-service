@@ -246,6 +246,13 @@ public class UserServiceImpl extends BaseService implements UserService {
         return connectionRepository.findByUserNameAndConnectedUserAndConnectionStatus(user, userName, ConnectionStatus.CONNECTED).isPresent();
     }
 
+    @Override
+    public String getConnectionStatus(String userName) {
+       String user = getCurrentUserContext().getUsername();
+        Optional<Connection> connection = connectionRepository.findByUserNameAndConnectedUser(user, userName);
+        return connection.map(value -> value.getConnectionStatus().toString()).orElse(ConnectionStatus.UNFRIENDED.toString());
+    }
+
     private void createConnectionRequest(String receiver) {
         String senderUserName = getCurrentUserContext().getUsername();
         Connection connection = createConnection(senderUserName, receiver);

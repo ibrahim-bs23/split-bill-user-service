@@ -71,4 +71,10 @@ public class UserController extends BaseService {
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL), response);
     }
 
+    @GetMapping("/connection-status/{userName}")
+    public ApiResponse<String> getConnectionStatus(@PathVariable String userName) {
+        String response = userService.getConnectionStatus(userName);
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL), response);
+    }
+
 }
