@@ -242,7 +242,7 @@ public class UserServiceImpl extends BaseService implements UserService {
 
     @Override
     public Boolean verifyConnection(String userName) {
-       String user = getCurrentUserContext().getUserName();
+       String user = getCurrentUserContext().getUsername();
         return connectionRepository.findByUserNameAndConnectedUserAndConnectionStatus(user, userName, ConnectionStatus.CONNECTED).isPresent();
     }
 
