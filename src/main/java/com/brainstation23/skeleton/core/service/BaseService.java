@@ -109,7 +109,7 @@ public class BaseService {
     }
 
     public String getUserName() {
-        return getCurrentUserContext().getUserName();
+        return getCurrentUserContext().getUsername();
     }
 
     public String getCorrelationId() {

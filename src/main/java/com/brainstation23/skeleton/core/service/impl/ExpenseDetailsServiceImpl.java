@@ -55,7 +55,7 @@ public class ExpenseDetailsServiceImpl extends BaseService{
     }
 
     private void validateExpenseDetailsRequest(Long eventExpenseId) {
-        String userName =getCurrentUserContext().getUserName();
+        String userName =getCurrentUserContext().getUsername();
         IndividualEventExpense individualEventExpense = individualEventExpenseRepository.findById(eventExpenseId).orElseThrow(
                 () -> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND));
         if(!individualEventExpense.getUserName().equals(userName)) {
@@ -102,7 +102,7 @@ public class ExpenseDetailsServiceImpl extends BaseService{
     }
 
     private IndividualEventExpense findIndividualExpenseForEvent(ExpenseDetailsRequest request) {
-        return individualEventExpenseRepository.findByEventIdAndUserName(request.getEventId(),getCurrentUserContext().getUserName()).orElseThrow(
+        return individualEventExpenseRepository.findByEventIdAndUserName(request.getEventId(),getCurrentUserContext().getUsername()).orElseThrow(
                 ()->new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND));
     }
 

@@ -111,7 +111,7 @@ public class UserLinkAccountsService extends BaseService {
     }
 
     private void validateLinkRequest(LinkRequest linkRequest) {
-        String userName = getCurrentUserContext().getUserName();
+        String userName = getCurrentUserContext().getUsername();
         TransferType transferType = TransferType.valueOf(linkRequest.getTransferType());
         Optional<UserLinkAccounts> byUserNameAndFromAccountAndTransferType = userLinkAccountsRepository.findByUserNameAndFromAccountAndTransferType(userName, linkRequest.getFromAccount(), transferType);
         if (byUserNameAndFromAccountAndTransferType.isPresent()) {

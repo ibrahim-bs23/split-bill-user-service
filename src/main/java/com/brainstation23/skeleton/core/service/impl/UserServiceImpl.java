@@ -29,16 +29,13 @@ import com.brainstation23.skeleton.data.repository.user.ConnectionRepository;
 import com.brainstation23.skeleton.data.repository.user.UserRepository;
 import com.brainstation23.skeleton.presenter.context.UserContextHolder;
 import com.brainstation23.skeleton.presenter.domain.request.auth.AuthenticationRequest;
-import com.brainstation23.skeleton.presenter.domain.request.devicebinding.DeviceInfoRequest;
 import com.brainstation23.skeleton.presenter.domain.request.user.ConnectionUpdate;
 import com.brainstation23.skeleton.presenter.domain.request.user.SignUpRequest;
 import com.brainstation23.skeleton.presenter.domain.response.auth.TokenResponse;
 import com.brainstation23.skeleton.presenter.domain.response.user.UserResponseDTO;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.conn.ConnectionRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -179,7 +176,7 @@ public class UserServiceImpl extends BaseService implements UserService {
 
     @Override
     public List<String> getPendingConnectionRequests() {
-        String user = getCurrentUserContext().getUserName();
+        String user = getCurrentUserContext().getUsername();
         List<Connection> pendingConnections = connectionRepository.findByConnectedUserAndConnectionStatus(user, ConnectionStatus.PENDING);
         return pendingConnections.stream()
                 .map(Connection::getUserName)
@@ -188,7 +185,7 @@ public class UserServiceImpl extends BaseService implements UserService {
 
     @Override
     public void acceptRequest(ConnectionUpdate connectionUpdate) {
-        String senderUserName = getCurrentUserContext().getUserName();
+        String senderUserName = getCurrentUserContext().getUsername();
         Connection connection = connectionRepository.findByUserNameAndConnectedUserAndConnectionStatus(connectionUpdate.getConnectedUser(), senderUserName, ConnectionStatus.PENDING).orElseThrow(
                 () -> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)
         );
@@ -198,7 +195,7 @@ public class UserServiceImpl extends BaseService implements UserService {
 
     @Override
     public void unfriendUser(String receiverName) {
-        String senderUserName = getCurrentUserContext().getUserName();
+        String senderUserName = getCurrentUserContext().getUsername();
         Optional<Connection> directConnection = connectionRepository.findByUserNameAndConnectedUser(senderUserName, receiverName);
         Optional<Connection> byDirectionalConnection = connectionRepository.findByUserNameAndConnectedUser(receiverName, senderUserName);
         if (directConnection.isPresent()) {
@@ -215,7 +212,7 @@ public class UserServiceImpl extends BaseService implements UserService {
 
     @Override
     public List<String> getUserFriends() {
-        String user = getCurrentUserContext().getUserName();
+        String user = getCurrentUserContext().getUsername();
         List<Connection> connections = connectionRepository.findByUserNameOrConnectedUserAndConnectionStatus(user, user, ConnectionStatus.CONNECTED);
         return connections.stream()
                 .map(connection -> connection.getConnectedUser().equals(user) ? connection.getUserName() : connection.getConnectedUser())
@@ -237,7 +234,7 @@ public class UserServiceImpl extends BaseService implements UserService {
     }
 
     private void createConnectionRequest(String receiver) {
-        String senderUserName = getCurrentUserContext().getUserName();
+        String senderUserName = getCurrentUserContext().getUsername();
         Connection connection = createConnection(senderUserName, receiver);
         connectionRepository.save(connection);
     }
@@ -260,7 +257,7 @@ public class UserServiceImpl extends BaseService implements UserService {
         userRepository.findByUsername(receiverId).orElseThrow(
                 () -> new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND)
         );
-        String senderUserName = getCurrentUserContext().getUserName();
+        String senderUserName = getCurrentUserContext().getUsername();
         connectionRepository.findByUserNameAndConnectedUserAndConnectionStatusIn(senderUserName, receiverId, List.of(ConnectionStatus.PENDING, ConnectionStatus.CONNECTED)).ifPresent(
                 connection -> {
                     throw new InvalidRequestDataException(ResponseMessage.INVALID_REQUEST_DATA);
@@ -276,7 +273,7 @@ public class UserServiceImpl extends BaseService implements UserService {
 
     private void validateSelfConnection(String receiverId) {
         CurrentUserContext currentUserContext = getCurrentUserContext();
-        if (currentUserContext.getUserName().equals(receiverId)) {
+        if (currentUserContext.getUsername().equals(receiverId)) {
             throw new UnauthorizedResourceException(ResponseMessage.UNAUTHORIZED_CONNECTION_REQUEST);
         }
     }
