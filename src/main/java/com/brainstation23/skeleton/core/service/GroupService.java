@@ -281,7 +281,7 @@ public class GroupService extends BaseService {
 
         List<GroupMember> groupMembers = groupMemberRepository.findByGroupId(groupId);
 
-        String currentUserIdentity = "89c47df9-951e-4450-8d65-48ffc5ffad51";
+        String currentUserIdentity = getUserIdentity();
 
         groupMembers.stream()
                 .filter(member -> member.getUserIdentity().equals(currentUserIdentity)
