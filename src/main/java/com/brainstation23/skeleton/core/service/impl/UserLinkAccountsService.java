@@ -85,14 +85,15 @@ public class UserLinkAccountsService extends BaseService {
     }
 
     private void checkValidUser(Long id) {
-        userLinkAccountsRepository.findById(id).ifPresent(userLinkAccounts -> {
+        userLinkAccountsRepository.findById(id).ifPresentOrElse(userLinkAccounts -> {
             if (!userLinkAccounts.getUserName().equals(getUserName())) {
                 throw new UnauthorizedResourceException(ResponseMessage.UNAUTHORIZED_RESOURCE_ACCESS);
             }
-            return;
+        }, () -> {
+            throw new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND);
         });
-        throw new RecordNotFoundException(ResponseMessage.RECORD_NOT_FOUND);
     }
+
 
     private UserLinkAccounts validatePrevLinkAccount(Long id) {
         return userLinkAccountsRepository.findById(id).orElseThrow(
