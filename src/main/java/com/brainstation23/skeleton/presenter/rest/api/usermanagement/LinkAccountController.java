@@ -46,7 +46,7 @@ public class LinkAccountController extends BaseService {
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL));
     }
 
-    @GetMapping("/get-preferable-payment-type")
+    @PostMapping("/get-preferable-payment-type")
     public ApiResponse<String> getPreferablePaymentType(@RequestBody PreferableLinkAccountRequests preferableLinkAccountRequests) {
         String paymentType = userLinkAccountsService.getPreferablePaymentType(preferableLinkAccountRequests);
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL), paymentType);

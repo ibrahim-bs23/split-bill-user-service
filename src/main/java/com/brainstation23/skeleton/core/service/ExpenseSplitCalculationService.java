@@ -26,6 +26,8 @@ public class ExpenseSplitCalculationService extends BaseService {
     private final ExpenseSplitRepository expenseSplitRepository;
     private final GroupEventRepository groupEventRepository;
 
+
+
     static class Balance {
         String name;
         String userIdentity;
@@ -104,6 +106,12 @@ public class ExpenseSplitCalculationService extends BaseService {
         return expenseSplitRepository.findAllByEventId(eventId);
     }
 
+    public List<ExpenseSplit> fetchEventWiseAllExpenseSplit(String eventId) {
+
+        return expenseSplitRepository.findAllByEventId(eventId);
+
+    }
+
     private void updateIndividualExpense(IndividualEventExpense expense, BigDecimal fairShare, PriorityQueue<Balance> creditors, PriorityQueue<Balance> debtors) {
         BigDecimal spentAmount = BigDecimal.valueOf(expense.getSpentAmount());
 
@@ -154,5 +162,13 @@ public class ExpenseSplitCalculationService extends BaseService {
 
 
     }
+
+    public boolean isSplitCompleted(String eventId) {
+
+        return expenseSplitRepository.existsByEventId(eventId);
+
+    }
+
+
 
 }

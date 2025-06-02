@@ -12,6 +12,8 @@ import java.util.Date;
 @Builder
 public class IndividualExpenseResponse {
 
+    private Long individualExpenseId;
+
     private String userName;
 
     private String userIdentity;
@@ -27,4 +29,6 @@ public class IndividualExpenseResponse {
     private Double budgetAmount;
 
     private String paymentStatus;
+
+    private Boolean isEditable;
 }

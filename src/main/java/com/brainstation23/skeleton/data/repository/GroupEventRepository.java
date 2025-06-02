@@ -25,4 +25,8 @@ public interface GroupEventRepository extends JpaRepository<GroupEvent, Long> {
     List<GroupEvent> findByEventId(String eventId);
 
     void deleteAllByEventId(String eventId);
+
+    List<GroupEvent> findAllByUserIdentityAndGroupId(String currentUserIdentity, String groupId);
+
+    List<GroupEvent> findAllByEventId(String eventId);
 }

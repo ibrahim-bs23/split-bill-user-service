@@ -33,4 +33,18 @@ public class ExpenseSplitCalculationResource extends BaseResource {
                 expenseSplitCalculationService.fetchEventWiseExpenseSplit(eventId)
         );
     }
+
+    @GetMapping("/all-splits/{eventId}")
+    public ApiResponse<List<ExpenseSplit>> fetchEventWiseAllExpenseSplit(@PathVariable String eventId) {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                expenseSplitCalculationService.fetchEventWiseAllExpenseSplit(eventId)
+        );
+    }
+
+    @GetMapping("/isSplitCompleted/{eventId}")
+    public ApiResponse<Boolean> isSplitCompleted(@PathVariable String eventId) {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                expenseSplitCalculationService.isSplitCompleted(eventId)
+        );
+    }
 }

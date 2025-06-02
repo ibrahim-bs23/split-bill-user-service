@@ -9,7 +9,7 @@ import java.util.Date;
 @Data
 @Builder
 public class GroupEventResponse {
-    private Long eventId;
+    private String eventId;
     private String eventName;
     private Date eventDate;
     private BigDecimal totalSpending;

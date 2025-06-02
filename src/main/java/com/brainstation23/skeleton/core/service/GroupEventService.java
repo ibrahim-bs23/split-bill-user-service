@@ -3,7 +3,6 @@ package com.brainstation23.skeleton.core.service;
 import com.brainstation23.skeleton.core.domain.enums.GroupEventStatusEnum;
 import com.brainstation23.skeleton.core.domain.enums.ResponseMessage;
 import com.brainstation23.skeleton.core.domain.exceptions.InvalidRequestDataException;
-import com.brainstation23.skeleton.core.domain.exceptions.RecordNotFoundException;
 import com.brainstation23.skeleton.core.domain.request.IndividualExpenseRequest;
 import com.brainstation23.skeleton.data.entity.GroupEvent;
 import com.brainstation23.skeleton.data.entity.GroupMember;
@@ -17,10 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,20 +46,22 @@ public class GroupEventService extends BaseService {
 
         if (Objects.nonNull(eventRequest.getEventId())) {
 
-            groupEvent = groupEventRepository.findFirstByEventId(eventRequest.getEventId())
-                    .orElseThrow(() -> new InvalidRequestDataException(ResponseMessage.RECORD_NOT_FOUND));
-            groupEvent.setEventName(eventRequest.getEventName());
-            groupEvent.setDescription(eventRequest.getDescription());
-            groupEvent.setEventDate(eventRequest.getEventDate());
+            final List<GroupEvent> groupEventList = groupEventRepository.findAllByEventId(eventRequest.getEventId());
+            groupEventList.forEach(event -> {
+                event.setEventName(eventRequest.getEventName());
+                event.setEventDate(eventRequest.getEventDate());
+            });
+            groupEventRepository.saveAll(groupEventList);
+
 
         } else {
             groupEvent = createGroupEvent(eventRequest, groupMember);
             expenseManagentService.createIndividualExpense(buildIndividualExpenseRequest(groupEvent));
+            groupEventRepository.save(groupEvent);
+            return mapToEventResponse(groupEvent);
         }
 
-        groupEventRepository.save(groupEvent);
-
-        return mapToEventResponse(groupEvent);
+        return null;
     }
 
     private IndividualExpenseRequest buildIndividualExpenseRequest(GroupEvent groupEvent) {
@@ -159,6 +157,21 @@ public class GroupEventService extends BaseService {
     }
 
     @Transactional
+    public List<String> fetchMembersFromEvent(String eventId) {
+
+        final List<GroupEvent> groupEventList = groupEventRepository.findAllByEventId(eventId);
+
+        List<String> usersOfEvent = new ArrayList<>();
+
+        groupEventList.forEach(event ->
+                usersOfEvent.add(event.getUsername())
+        );
+
+        return usersOfEvent;
+
+    }
+
+    @Transactional
     public void removeParticipantFromEvent(GroupEvent event, String username) {
 
         GroupEvent participantEvent = groupEventRepository.findByEventIdAndUsername(event.getEventId(), username)
@@ -181,7 +194,7 @@ public class GroupEventService extends BaseService {
 
         String currentUserIdentity = getUserIdentity();
 
-        validateEventUser(groupEvent.getGroupId(), currentUserIdentity);
+        validateEventUser(groupEvent.getEventId(), currentUserIdentity);
 
         groupEventRepository.deleteAllByEventId(eventId);
 
@@ -191,11 +204,11 @@ public class GroupEventService extends BaseService {
 
 
     @Transactional
-    public List<GroupEventResponse> fetchUserWiseEvents() {
+    public List<GroupEventResponse> fetchUserWiseEvents(String groupId) {
 
         String currentUserIdentity = getUserIdentity();
 
-        List<GroupEvent> groupEventList = groupEventRepository.findAllByUserIdentity(currentUserIdentity);
+        List<GroupEvent> groupEventList = groupEventRepository.findAllByUserIdentityAndGroupId(currentUserIdentity, groupId);
 
         List<GroupEventResponse> groupEventResponseList = groupEventList.stream()
                 .map(groupEvent -> mapToEventResponse(groupEvent))
@@ -234,7 +247,7 @@ public class GroupEventService extends BaseService {
 
     private GroupEventResponse mapToEventResponse(GroupEvent event) {
         return GroupEventResponse.builder()
-                .eventId(event.getId())
+                .eventId(event.getEventId())
                 .eventName(event.getEventName())
                 .eventDate(event.getEventDate())
                 .totalSpending(event.getTotalSpending())

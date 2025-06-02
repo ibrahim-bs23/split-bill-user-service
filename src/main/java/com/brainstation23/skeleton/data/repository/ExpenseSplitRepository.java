@@ -2,6 +2,7 @@ package com.brainstation23.skeleton.data.repository;
 
 import com.brainstation23.skeleton.data.entity.ExpenseSplit;
 import com.brainstation23.skeleton.data.entity.ExpenseTransaction;
+import io.micrometer.common.KeyValues;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,4 +19,6 @@ public interface ExpenseSplitRepository extends JpaRepository<ExpenseSplit, Long
     List<ExpenseSplit> findAllBySenderUserIdentity(String userIdentity);
 
     List<ExpenseSplit> findAllByEventIdAndSenderUserIdentity(String eventId, String userIdentity);
+
+    boolean existsByEventId(String eventId);
 }

@@ -107,6 +107,7 @@ public class ExpenseManagementServiceImpl extends BaseService implements Expense
 
     private IndividualExpenseResponse mapToIndividualExpenseResponse(IndividualEventExpense individualEventExpense) {
         return IndividualExpenseResponse.builder()
+                .individualExpenseId(individualEventExpense.getId())
                 .userName(individualEventExpense.getUserName())
                 .userIdentity(individualEventExpense.getUserIdentity())
                 .currency(individualEventExpense.getCurrency())
@@ -115,6 +116,7 @@ public class ExpenseManagementServiceImpl extends BaseService implements Expense
                 .dueAmount(individualEventExpense.getDueAmount())
                 .outstandingBalance(individualEventExpense.getOutstandingBalance())
                 .spentAmount(individualEventExpense.getSpentAmount())
+                .isEditable(individualEventExpense.getIsEditable())
                 .build();
     }
 

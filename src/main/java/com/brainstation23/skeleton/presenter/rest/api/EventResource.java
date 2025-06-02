@@ -41,6 +41,13 @@ public class EventResource extends BaseResource {
         );
     }
 
+    @GetMapping("/{eventId}/all-members")
+    public ApiResponse<List<String>> fetchAllMembersFromEvent(@PathVariable String eventId) {
+        return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
+                groupEventService.fetchMembersFromEvent(eventId)
+        );
+    }
+
     @DeleteMapping("/{eventId}")
     public ApiResponse<String> deleteEvent(@PathVariable String eventId) {
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
@@ -48,15 +55,15 @@ public class EventResource extends BaseResource {
         );
     }
 
-    @GetMapping("/events")
-    public ApiResponse<List<GroupEventResponse>> fetchUserWiseEvents() {
+    @GetMapping("/events/{groupId}")
+    public ApiResponse<List<GroupEventResponse>> fetchUserWiseEvents(@PathVariable String groupId) {
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
-                groupEventService.fetchUserWiseEvents()
+                groupEventService.fetchUserWiseEvents(groupId)
         );
     }
 
     @GetMapping("/{eventId}")
-    public ApiResponse<GroupEventResponse> fetchUserWiseEvents(@PathVariable String eventId) {
+    public ApiResponse<GroupEventResponse> fetchUserWiseEventDetails(@PathVariable String eventId) {
         return ResponseUtils.createSuccessResponseObject(getMessage(ResponseMessage.OPERATION_SUCCESSFUL),
                 groupEventService.fetchUserWiseEventDetails(eventId)
         );

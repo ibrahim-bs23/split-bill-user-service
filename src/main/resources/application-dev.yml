@@ -11,7 +11,7 @@ spring:
 
 datasource:
   master:
-    url: jdbc:postgresql://10.112.20.236:5432/postgres?currentSchema=user_service
+    url: jdbc:postgresql://10.112.20.100:5432/postgres?currentSchema=user_service
     username: postgres
     password: mysecretpassword
     maximum-pool-size: 50
@@ -23,7 +23,7 @@ datasource:
     validation-timeout: 5000
     leak-detection-threshold: 60000
   slave:
-    url: jdbc:postgresql://10.112.20.236:5432/postgres?currentSchema=user_service
+    url: jdbc:postgresql://10.112.20.100:5432/postgres?currentSchema=user_service
     username: postgres
     password: mysecretpassword
     maximum-pool-size: 50
@@ -36,7 +36,7 @@ datasource:
     leak-detection-threshold: 60000
 
 redis:
-  host: 10.112.20.236
+  host: 10.112.20.100
   port: 6379
   password: YourStrongRedisPass
   database:
