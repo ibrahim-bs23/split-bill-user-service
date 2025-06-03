@@ -11,7 +11,7 @@ import lombok.*;
 @Setter
 @Getter
 @Builder
-@Table(name = "user_link_accounts")
+@Table(name = "user_link_accounts", schema = "user_service")
 public class UserLinkAccounts {
 
     @Id

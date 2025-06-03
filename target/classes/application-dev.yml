@@ -11,9 +11,9 @@ spring:
 
 datasource:
   master:
-    url: jdbc:postgresql://10.112.20.100:5432/postgres?currentSchema=user_service
-    username: postgres
-    password: mysecretpassword
+    url: jdbc:postgresql://ep-divine-resonance-a12pm9wr-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?currentSchema=user_service
+    username: neondb_owner
+    password: npg_o0jRVsD6paht
     maximum-pool-size: 50
     minimum-idle: 10
     connection-timeout: 30000
@@ -23,9 +23,9 @@ datasource:
     validation-timeout: 5000
     leak-detection-threshold: 60000
   slave:
-    url: jdbc:postgresql://10.112.20.100:5432/postgres?currentSchema=user_service
-    username: postgres
-    password: mysecretpassword
+    url: jdbc:postgresql://ep-divine-resonance-a12pm9wr-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?currentSchema=user_service
+    username: neondb_owner
+    password: npg_o0jRVsD6paht
     maximum-pool-size: 50
     minimum-idle: 10
     connection-timeout: 30000
@@ -36,11 +36,11 @@ datasource:
     leak-detection-threshold: 60000
 
 redis:
-  host: 10.112.20.100
+  host: absolute-newt-26689.upstash.io
   port: 6379
-  password: YourStrongRedisPass
+  password: AWhBAAIjcDE3NmZlZGU0ZGFmZGI0MmE5YmFlYTE3NzNhNTcwYjEyZnAxMA
   database:
-    index: 11
+    index: 0
   pool:
     max:
       connection: 30
