@@ -33,7 +33,7 @@ info:
 
 spring:
   profiles:
-    active: dev
+    active: test
   application:
     name: user-service
   lifecycle:
