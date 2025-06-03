@@ -1,0 +1,60 @@
+server:
+  port: 9220
+
+spring:
+  sleuth:
+    sampler:
+      probability: 1.0
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+datasource:
+  master:
+    url: jdbc:postgresql://10.112.20.236:5432/postgres?currentSchema=user_service
+    username: postgres
+    password: mysecretpassword
+    maximum-pool-size: 50
+    minimum-idle: 10
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    pool-name: UserMasterHikariCP
+    validation-timeout: 5000
+    leak-detection-threshold: 60000
+  slave:
+    url: jdbc:postgresql://10.112.20.236:5432/postgres?currentSchema=user_service
+    username: postgres
+    password: mysecretpassword
+    maximum-pool-size: 50
+    minimum-idle: 10
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    pool-name: UserSlaveHikariCP
+    validation-timeout: 5000
+    leak-detection-threshold: 60000
+
+redis:
+  host: 10.112.20.236
+  port: 6379
+  password: YourStrongRedisPass
+  database:
+    index: 11
+  pool:
+    max:
+      connection: 30
+      idle:
+        connection: 10
+    min:
+      idle:
+        connection: 0
+
+logging:
+  config: classpath:log/logback-dev.xml
+
+services:
+  payment:
+    base-url: http://localhost:9014
+  remittance:
+    base-url: localhost:90
