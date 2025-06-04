@@ -274,7 +274,6 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-                    <outputDirectory>../all-service-jars</outputDirectory>
                 </configuration>
             </plugin>
 
