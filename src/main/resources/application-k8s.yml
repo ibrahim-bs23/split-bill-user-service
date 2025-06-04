@@ -10,6 +10,11 @@ spring:
       ddl-auto: ${JPA_HIBERNATE_DDL_AUTO:none}
 
 eureka:
+  instance:
+    preferIpAddress: true
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 10
+    instance-id: ${spring.application.name}:${random.value}
   client:
     fetchRegistry: true
     registerWithEureka: true
